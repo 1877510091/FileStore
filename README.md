@@ -11,6 +11,7 @@
 <p align="center">
   <a href="#-功能特性">功能特性</a> ·
   <a href="#-部署指南">部署指南</a> ·
+  <a href="STORAGE.md">存储通道配置</a> ·
   <a href="#-截图">截图</a> ·
   <a href="#-技术栈">技术栈</a> ·
   <a href="#-赞赏">赞赏</a>
@@ -177,6 +178,14 @@ FileStore/
 
 <p align="center">
   <sub><i>Language: <a href="#">中文</a> | <b>English</b></i></sub>
+</p>
+
+<p align="center">
+  <a href="#-features">Features</a> ·
+  <a href="#-deployment-guide">Deployment</a> ·
+  <a href="STORAGE.md">Storage Channels</a> ·
+  <a href="#-screenshot">Screenshot</a> ·
+  <a href="#-tech-stack">Tech Stack</a>
 </p>
 
 ## 🌟 Introduction
