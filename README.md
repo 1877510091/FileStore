@@ -73,36 +73,31 @@ FileStore 是一个基于 **Cloudflare Pages** 搭建的免费自建网盘。无
 1. **Fork 本仓库** 或 **上传代码到你的 GitHub**
 
 2. **登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)**
-   - 进入 Pages → Create a project → Connect to Git
-   - 选择你 Fork 的仓库
+   - 进入 Workers 和 Pages → 创建应用程序 → Pages → 连接到 Git
+   - 选择你 Fork 的仓库，点击部署
    - 构建设置：
      - **Build command:** `npm install`
      - **Build output directory:** `frontend-dist`
      - **Node.js version:** `18` 或 `20`
 
-3. **配置环境变量**（在 Pages 项目的 Settings → Environment variables）
-   ```
-   # Telegram 通道（可选）
-   TG_BOT_TOKEN=你的Telegram Bot Token
-   TG_CHAT_ID=你的Telegram Chat ID
+3. **配置环境变量**（在 Pages 项目 → 设置 → 环境变量）
 
-   # Cloudflare R2（可选）
-   R2_ACCOUNT_ID=你的Cloudflare Account ID
-   R2_ACCESS_KEY_ID=你的R2 Access Key
-   R2_SECRET_ACCESS_KEY=你的R2 Secret Key
-   R2_BUCKET_NAME=你的R2 Bucket名称
+   至少配置一个存储通道才能上传文件，推荐 Telegram：
 
-   # 管理员密码（首次部署后设置）
-   ADMIN_PASSWORD=你想要的管理员密码
-   ```
+   | 变量名 | 说明 | 必需 |
+   | :--- | :--- | :---: |
+   | `TG_BOT_TOKEN` | Telegram Bot Token | 推荐 |
+   | `TG_CHAT_ID` | Telegram 频道 ID | 推荐 |
 
-4. **部署完成** — Cloudflare 会自动构建并部署，等待 1-2 分钟即可访问
+   其他通道见 [存储通道配置](STORAGE.md)。
+
+4. **重新部署** — 添加环境变量后需在项目 → 部署中点击"重新部署"
 
 ### 首次登录
 
 - 访问你的 Pages 域名
 - 输入任意用户名即可进入（无需密码）
-- 管理后台：访问 `/admin.html`，使用管理员密码登录
+- 管理后台：访问 `/admin.html`，输入用户名登录（首次登录会自动创建管理员）
 
 ## 📸 截图
 
@@ -232,36 +227,31 @@ FileStore is a **free self-hosted cloud storage** solution built on **Cloudflare
 1. **Fork this repo** or **upload code to your GitHub**
 
 2. **Login to [Cloudflare Dashboard](https://dash.cloudflare.com/)**
-   - Go to Pages → Create a project → Connect to Git
-   - Select your forked repo
+   - Go to Workers and Pages → Create application → Pages → Connect to Git
+   - Select your forked repo, click deploy
    - Build settings:
      - **Build command:** `npm install`
      - **Build output directory:** `frontend-dist`
      - **Node.js version:** `18` or `20`
 
-3. **Configure Environment Variables** (in Pages project Settings → Environment variables)
-   ```
-   # Telegram Channel (optional)
-   TG_BOT_TOKEN=your_telegram_bot_token
-   TG_CHAT_ID=your_telegram_chat_id
+3. **Configure Environment Variables** (in Pages project → Settings → Environment variables)
 
-   # Cloudflare R2 (optional)
-   R2_ACCOUNT_ID=your_cloudflare_account_id
-   R2_ACCESS_KEY_ID=your_r2_access_key
-   R2_SECRET_ACCESS_KEY=your_r2_secret_key
-   R2_BUCKET_NAME=your_r2_bucket_name
+   At least one storage channel is required. Telegram is recommended:
 
-   # Admin Password (set after first deployment)
-   ADMIN_PASSWORD=your_desired_admin_password
-   ```
+   | Variable | Description | Required |
+   | :--- | :--- | :---: |
+   | `TG_BOT_TOKEN` | Telegram Bot Token | Recommended |
+   | `TG_CHAT_ID` | Telegram Channel ID | Recommended |
 
-4. **Done** — Cloudflare will auto-build and deploy. Wait 1-2 minutes.
+   Other channels: see [Storage Channel Configuration](STORAGE.md).
+
+4. **Redeploy** — After adding env vars, go to Deployments and click "Retry deployment"
 
 ### First Login
 
 - Visit your Pages domain
 - Enter any username to enter (no password needed)
-- Admin panel: visit `/admin.html`, login with admin password
+- Admin panel: visit `/admin.html`, enter username to login (first login creates admin automatically)
 
 ## 📸 Screenshot
 

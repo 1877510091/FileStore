@@ -9,7 +9,7 @@ FileStore 支持多种存储通道，可自由组合。配置方式有两种：
 
 ## Telegram
 
-> 单文件上限 20MB，免费无容量限制
+> 通过分片上传绕过大小限制，支持大文件上传
 
 ### 前置要求
 
@@ -197,16 +197,15 @@ FileStore 支持多种存储通道，可自由组合。配置方式有两种：
 
 ## 各通道文件大小限制
 
-| 存储通道 | 单文件上限 |
-| :--- | :--- |
-| Telegram | 20MB |
-| Cloudflare R2 | 5GB（分片上传） |
-| S3 兼容存储 | 5GB（分片上传） |
-| Discord（普通） | 25MB |
-| Discord（Nitro） | 50-100MB |
-| HuggingFace（普通） | 35MB |
-| HuggingFace（LFS） | 50GB |
-| WebDAV | 取决于服务端配置 |
+| 存储通道 | 单文件上限 | 备注 |
+| :--- | :--- | :--- |
+| Telegram | 无限制 | 分片上传，每片16MB |
+| Cloudflare R2 | 5GB | 分片上传 |
+| S3 兼容存储 | 5GB | 分片上传 |
+| Discord（普通） | 25MB | 无分片 |
+| Discord（Nitro） | 50-100MB | 无分片 |
+| HuggingFace | 无限制 | 普通上传35MB，LFS可达50GB |
+| WebDAV | 取决于服务端 | 无分片 |
 
 ---
 
