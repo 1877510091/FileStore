@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FileStore网盘</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A78BFA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E">
+<style>
+:root{--bg0:#15131f;--bg1:#1d1830;--bg2:#241d3a;--surface:rgba(42,36,64,.72);--surface-hi:rgba(54,46,82,.92);--surface-lo:rgba(34,29,52,.55);--sidebar:rgba(38,32,58,.72);--border:#3a2f55;--text:#ECE9FB;--text2:#B8A6F0;--text3:#8A82B8;--accent:#F472B6;--accent-h:#F9A8D4;--accent-p:#DB2777;--grad:linear-gradient(90deg,#A78BFA,#F472B6);--green:#34C759;--orange:#FF9500;--red:#EE5A6F;--purple:#8B5CF6;--radius:12px;--card-bg:rgba(46,40,68,.82);--input-bg:rgba(54,47,80,.65);--btn-bg:rgba(58,50,86,.72);--panel-bg:rgba(40,34,60,.50)}
+[data-theme="light"]{--bg0:#FFF0F5;--bg1:#FFE4E1;--bg2:#E6E6FA;--surface:rgba(255,255,255,.70);--surface-hi:rgba(255,255,255,.90);--surface-lo:rgba(255,255,255,.55);--sidebar:rgba(255,255,255,.62);--border:#F3DCE9;--text:#1E1B4B;--text2:#6366F1;--text3:#A5A8D8;--accent:#EC4899;--accent-h:#F472B6;--accent-p:#DB2777;--grad:linear-gradient(90deg,#8B5CF6,#EC4899);--card-bg:rgba(255,255,255,.78);--input-bg:rgba(255,255,255,.68);--btn-bg:rgba(255,255,255,.62);--panel-bg:rgba(255,255,255,.35)}
+*{margin:0;padding:0;box-sizing:border-box}html,body,#app{height:100%;width:100%;overflow:hidden}
+body{font-family:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",sans-serif;background:var(--bg0);color:var(--text);transition:background .3s,color .3s}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(167,139,250,.18) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(244,114,182,.15) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.08) 0%,transparent 70%);pointer-events:none;z-index:0}
+[data-theme="light"] body::before{background:radial-gradient(ellipse at 20% 20%,rgba(139,92,246,.1) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(236,72,153,.08) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(99,102,241,.05) 0%,transparent 70%)}
+button{cursor:pointer;font-family:inherit}input{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.glass{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:var(--radius)}
+.glass-hi{background:var(--surface-hi);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--radius)}
+.btn{padding:8px 20px;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;transition:all .2s;color:#fff}
+.btn-accent{background:var(--grad);color:#fff}.btn-accent:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 15px rgba(244,114,182,.3)}
+.btn-ghost{background:var(--btn-bg);color:var(--text);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface-hi)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.9}
+.input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.input:focus{border-color:var(--accent)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}.fade-in{animation:fadeIn .3s ease}
+.login-page{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-card{width:380px;padding:40px;text-align:center;animation:fadeIn .5s ease}
+.login-logo{width:80px;height:80px;margin:0 auto 20px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 8px 32px rgba(167,139,250,.3)}
+.login-title{font-size:24px;font-weight:700;margin-bottom:4px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-subtitle{font-size:13px;color:var(--text3);margin-bottom:28px}
+.login-input{margin-bottom:16px}.login-btn{width:100%;padding:12px;font-size:15px}
+.login-error{color:var(--red);font-size:13px;margin-top:8px;min-height:20px}.login-rate{color:var(--orange);font-size:12px;margin-top:4px}
+.theme-toggle{position:fixed;top:16px;right:16px;z-index:1001;width:40px;height:40px;border-radius:50%;background:var(--btn-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(10px);color:var(--text2)}
+.theme-toggle:hover{background:var(--surface-hi);transform:rotate(30deg);color:var(--text)}
+.main-layout{display:flex;height:100%;position:relative;z-index:1}
+.sidebar{width:240px;min-width:240px;height:100%;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--sidebar);backdrop-filter:blur(10px)}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sidebar-logo-mark{width:32px;height:32px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.sidebar-logo-text{font-size:16px;font-weight:700}.sidebar-domain{font-size:11px;color:var(--text3);padding-left:42px}
+.sidebar-upload{margin:16px}.sidebar-upload .btn{width:100%;padding:10px;font-size:14px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+.sidebar-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .2s;margin-bottom:2px}
+.sidebar-nav-item:hover,.sidebar-nav-item.active{background:var(--surface);color:var(--text)}.sidebar-nav-item.active{font-weight:600}
+.sidebar-nav-item svg{width:18px;height:18px;flex-shrink:0}
+.sidebar-nav-item .unread-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+/* ===== 侧栏目录树（全部文件为根，默认收起）===== */
+.tree-chev{width:14px;height:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:transform .3s cubic-bezier(.4,0,.2,1),color .2s ease}
+.tree-chev svg{width:12px;height:12px}
+.tree-chev.empty{visibility:hidden}
+.sidebar-nav-item.expanded>.tree-chev{transform:rotate(90deg);color:var(--text2)}
+.sidebar-nav-item .tree-icon{width:18px;height:18px;flex-shrink:0}
+.sidebar-nav-item .tree-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-count{margin-left:auto;font-size:10px;line-height:15px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 6px;flex-shrink:0}
+/* 嵌套层：每多一级再叠一层缩进 + 引导线（文件夹的上下级关系靠这个体现） */
+.tree-kids>.tree-kids-inner{border-left:1px solid var(--border);margin-left:17px}
+.tree-kids .sidebar-nav-item{padding:7px 10px;font-size:12.5px}
+.tree-kids .sidebar-nav-item svg{width:16px;height:16px}
+.tree-kids .tree-chev svg{width:11px;height:11px}
+/* 顶层容器同时装着「文件夹分支」和 4 个分类项，所以它自己不缩进 */
+#allFilesTree>.tree-kids-inner{margin-left:0;border-left:0}
+/* 文件夹分支：缩进 17px + 竖直引导线，和「全部文件」拉开层级 */
+.tree-branch{margin-left:17px;border-left:1px solid var(--border)}
+.tree-branch.is-empty{margin-left:0;border-left:0}
+/* 最近上传 / 图片 / 视频 / 文档：与「全部文件」严格同一列（同一 padding、同一字号、同一图标尺寸） */
+#allFilesTree>.tree-kids-inner>.sidebar-nav-item.tree-sub{padding:7px 8px 7px 12px;font-size:13px}
+#allFilesTree>.tree-kids-inner>.sidebar-nav-item.tree-sub svg{width:18px;height:18px}
+.sidebar-upload-channel{display:flex;align-items:center;gap:8px;margin-top:8px}
+.sidebar-upload-channel>span{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.sidebar-upload-channel .dd{flex:1;min-width:0}
+/* ===== 面包屑 ===== */
+.crumb-bar{display:flex;align-items:center;gap:1px;padding:9px 20px 2px;flex-wrap:wrap;font-size:12px;color:var(--text3)}
+.crumb{display:inline-flex;align-items:center;padding:3px 8px;border-radius:7px;cursor:pointer;transition:background .16s ease,color .16s ease}
+.crumb:hover{background:var(--surface);color:var(--text)}
+.crumb.last{color:var(--text);font-weight:600;cursor:default}
+.crumb.last:hover{background:transparent}
+.crumb-sep{color:var(--text3);opacity:.55;padding:0 1px}
+.crumb-icon{display:flex;width:14px;height:14px;margin-right:5px;color:var(--text3)}
+.crumb-icon svg{width:100%;height:100%}
+/* ===== 文件列表里的文件夹 ===== */
+.folder-row{cursor:pointer}
+.folder-row td{background:rgba(167,139,250,.05)}
+.folder-row:hover td{background:rgba(167,139,250,.11)}
+.folder-row .file-name-text{font-weight:500}
+.folder-grid{cursor:pointer}
+.folder-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.folder-loc{font-size:12px;color:var(--text3);margin-bottom:10px;word-break:break-all;line-height:1.5}
+.folder-hint{font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.55}
+.folder-new-row{display:flex;gap:8px;margin-top:12px}
+.folder-new-row .btn{white-space:nowrap}
+.modal-body .dd{margin-top:2px}
+.sidebar-section{padding:12px 12px 4px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.sidebar-footer{padding:8px;border-top:1px solid var(--border);background:var(--surface-lo)}
+.sidebar-footer-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text2);font-size:13px;text-decoration:none;transition:all .2s;border:1px solid transparent;background:transparent;font-family:inherit;cursor:pointer}
+.sidebar-footer-btn:hover{background:var(--surface);color:var(--text);border-color:var(--border)}
+.sidebar-footer-btn svg{width:18px;height:18px;flex-shrink:0}
+.apps-wrap{padding:2px 12px 6px}
+.app-link{display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:4px;border-radius:var(--radius);color:var(--text2);font-size:13px;text-decoration:none;transition:background .2s,color .2s,border-color .2s,transform .2s;background:var(--surface-lo);border:1px solid transparent}
+.app-link:hover{background:var(--surface);color:var(--text);border-color:var(--border);transform:translateX(2px)}
+.app-link .app-ico{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.app-link .app-ico svg{width:18px;height:18px}
+.app-link .app-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-link .app-go{font-size:13px;opacity:.45}
+.sidebar-channel{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);font-size:12px;margin-bottom:2px}
+.sidebar-channel .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0} .sidebar-channel .ch-ico{display:flex;align-items:center;justify-content:center;width:16px;flex-shrink:0}.sidebar-channel .dot.green{background:var(--green)}.sidebar-channel .dot.orange{background:var(--orange)}
+.sidebar-channel .channel-bar{flex:1;height:4px;background:var(--surface);border-radius:2px;overflow:hidden}
+.sidebar-channel .channel-fill{height:100%;border-radius:2px;transition:width .3s}
+.sidebar-group{padding:8px 12px;margin:0 8px;border-radius:var(--radius);background:var(--surface-lo);margin-bottom:8px}
+.sidebar-group-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.sidebar-group-members{display:flex;flex-wrap:wrap;gap:4px}
+.sidebar-group-member{width:28px;height:28px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);cursor:pointer;position:relative;overflow:hidden}
+.sidebar-group-member img{width:100%;height:100%;object-fit:cover}
+.sidebar-group-member svg{width:16px;height:16px}
+.activity-log{padding:8px 12px}
+.activity-log-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--surface-lo);font-size:11px;color:var(--text3)}
+.activity-log-item:last-child{border-bottom:none}
+.activity-log-item .act-user{color:var(--accent);font-weight:600;white-space:nowrap}
+.activity-log-item .act-file{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.activity-log-item .act-time{white-space:nowrap;font-size:10px;opacity:.7}
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{position:relative;z-index:5;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px)}
+.topbar-logo{display:flex;align-items:center;gap:8px}
+.topbar-logo-mark{width:28px;height:28px;border-radius:6px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.topbar-logo-text{font-size:14px;font-weight:700}
+.topbar-domain{font-size:10px;color:var(--text3);background:var(--surface-lo);padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.topbar-storage{display:flex;align-items:center;gap:8px;min-width:220px}
+.topbar-storage-bar{flex:1;height:8px;background:var(--surface-lo);border-radius:4px;overflow:hidden;display:flex}
+.topbar-storage-seg{height:100%;transition:width .3s}
+.topbar-storage-seg.others{background:#6B7280;border-radius:4px 0 0 4px}
+.topbar-storage-seg.self{background:var(--grad)}
+.topbar-storage-seg.available{background:var(--surface);flex:1}
+.topbar-storage-text{font-size:11px;color:var(--text3);white-space:nowrap}
+.storage-legend{display:flex;gap:10px;font-size:10px;color:var(--text3);padding:0 20px 8px;flex-wrap:wrap}
+.storage-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.topbar-channel select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
+.topbar-search{flex:1;max-width:300px;position:relative}
+.topbar-search .input{padding-left:32px;padding-right:12px;height:34px}
+.topbar-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);width:16px;height:16px}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.topbar-btn{width:34px;height:34px;border-radius:var(--radius);background:var(--btn-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .2s}
+.topbar-btn:hover{background:var(--surface-hi);color:var(--text)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;overflow:hidden}
+.user-avatar:hover{border-color:var(--accent);transform:scale(1.05)}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+/* 头像图片统一铺满容器并居中裁切：不要依赖各个容器自己写 img 规则 */
+.avatar-img{display:block;width:100%;height:100%;object-fit:cover}
+.user-avatar svg{width:18px;height:18px}
+.toolbar{position:relative;z-index:4;display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.toolbar-left{display:flex;align-items:center;gap:8px}.toolbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.sort-select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.view-toggle button{width:32px;height:30px;border:none;background:var(--btn-bg);color:var(--text3);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.view-toggle button.active{background:var(--accent);color:#fff}
+.batch-bar{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--surface-hi);border-bottom:1px solid var(--border);animation:fadeIn .2s}
+.batch-bar span{font-size:13px;color:var(--text2)}.batch-bar .btn{padding:6px 14px;font-size:12px}
+.file-area{flex:1;overflow-y:auto;padding:0 20px 20px}
+.file-table{width:100%;border-collapse:collapse}
+.file-table th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg0);z-index:1}
+.file-table td{padding:10px 12px;border-bottom:1px solid rgba(58,47,86,.3);font-size:13px}
+.file-table tr:hover td{background:var(--surface-lo)}
+/* ===== 多选：默认收起整列，开启后丝滑展开 ===== */
+.file-table th.cb-cell,.file-table td.cb-cell{position:relative;width:0;padding:0;opacity:0;overflow:hidden;transition:width .32s cubic-bezier(.4,0,.2,1),padding .32s cubic-bezier(.4,0,.2,1),opacity .22s ease}
+.file-area.select-mode .file-table th.cb-cell,.file-area.select-mode .file-table td.cb-cell{width:48px;padding:10px 14px;opacity:1}
+.cbx{position:absolute;left:14px;top:50%;width:20px;height:20px;transform:translateY(-50%) scale(.4);opacity:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .18s ease}
+.select-mode .cbx{transform:translateY(-50%) scale(1);opacity:1}
+.cbx input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.cbx-box{width:18px;height:18px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface-lo);display:flex;align-items:center;justify-content:center;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.cbx:hover .cbx-box{border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 4px rgba(244,114,182,.13)}
+.cbx input:checked+.cbx-box{background:var(--grad);border-color:transparent;box-shadow:0 2px 10px rgba(244,114,182,.38)}
+.cbx-box::after{content:'';width:5px;height:9px;margin-top:-2px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg) scale(0);opacity:0;transition:transform .24s cubic-bezier(.34,1.56,.64,1) .03s,opacity .14s ease}
+.cbx input:checked+.cbx-box::after{transform:rotate(45deg) scale(1);opacity:1}
+.file-table tr.is-picked td{background:rgba(167,139,250,.09)}
+.multi-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;height:30px;border-radius:var(--radius);border:1px solid var(--border);background:var(--btn-bg);color:var(--text2);font-size:12px;white-space:nowrap;transition:all .22s cubic-bezier(.4,0,.2,1)}
+.multi-btn:hover{background:var(--surface-hi);color:var(--text);border-color:var(--accent)}
+.multi-btn.active{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 3px 14px rgba(244,114,182,.32)}
+.multi-btn .cnt{display:none;min-width:16px;line-height:16px;padding:0 5px;border-radius:9px;background:rgba(255,255,255,.28);font-size:10px;text-align:center}
+.multi-btn.active .cnt{display:block}
+.file-name{display:flex;align-items:center;gap:10px;cursor:pointer}
+.file-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.file-name-text{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:400px} .file-meta-m{display:none} .pv-body{display:flex;align-items:center;justify-content:center;max-height:70vh;overflow:auto;background:var(--surface-lo);border-radius:12px;padding:8px} .pv-media{max-width:100%;max-height:66vh;border-radius:8px;display:block} .pv-audio{width:100%;max-width:440px} .pv-text{margin:0;width:100%;max-height:66vh;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:12.5px;line-height:1.65;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.file-size{color:var(--text3);white-space:nowrap}.file-date{color:var(--text3);white-space:nowrap;font-size:12px}
+.file-channel{white-space:nowrap}
+.file-owner{font-size:12px;color:var(--text3);white-space:nowrap}
+.file-actions{white-space:nowrap;display:flex;gap:4px;opacity:0;transition:opacity .2s}
+.file-table tr:hover .file-actions{opacity:1}
+.file-action{width:30px;height:30px;border-radius:6px;border:none;background:transparent;color:var(--text3);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.file-action:hover{background:var(--surface);color:var(--text)}.file-action.del:hover{color:var(--red)}
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding-top:12px}
+.file-grid-item{position:relative;padding:16px;border-radius:var(--radius);background:var(--card-bg);border:1px solid var(--border);cursor:pointer;transition:all .2s;text-align:center}
+.file-grid-item.is-picked{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 6px 22px rgba(244,114,182,.22)}
+.grid-cbx{position:absolute;left:10px;top:10px;transform:translateY(0) scale(.4);opacity:0;z-index:2;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .18s ease}
+.select-mode .grid-cbx{transform:translateY(0) scale(1);opacity:1}
+.file-grid-item:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.2);border-color:var(--accent)}
+.file-grid-item .file-icon{width:48px;height:48px;margin:0 auto 10px;font-size:24px}
+.file-grid-item .file-name-text{font-size:12px;margin-bottom:4px}
+.file-grid-item .file-actions{justify-content:center;margin-top:8px;opacity:0}
+.file-grid-item:hover .file-actions{opacity:1}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text3)}
+.empty-state svg{width:80px;height:80px;margin-bottom:16px;opacity:.3}.empty-state p{font-size:15px;margin-bottom:16px}
+.drop-overlay{position:fixed;inset:0;background:rgba(21,19,31,.85);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.drop-box{width:400px;height:280px;border:3px dashed var(--accent);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.drop-box svg{width:64px;height:64px;color:var(--accent);opacity:.7}.drop-box p{font-size:18px;font-weight:600;color:var(--text)}.drop-box span{font-size:13px;color:var(--text3)}
+.upload-panel{position:fixed;bottom:20px;right:20px;width:340px;z-index:1500;display:flex;flex-direction:column;gap:8px}
+.upload-item{padding:12px;border-radius:var(--radius);background:var(--surface-hi);backdrop-filter:blur(10px);border:1px solid var(--border);animation:fadeIn .3s}
+.upload-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.upload-item-name{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+.upload-item-pct{font-size:11px;color:var(--text3)}
+.upload-bar{height:4px;background:var(--surface);border-radius:2px;overflow:hidden}
+.upload-bar-fill{height:100%;background:var(--grad);border-radius:2px;transition:width .3s}
+.modal-overlay{position:fixed;inset:0;background:rgba(21,19,31,.7);z-index:3000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.modal{width:440px;max-width:90vw;max-height:88vh;overflow-y:auto;padding:24px;animation:fadeIn .3s}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:16px}
+.modal-body{margin-bottom:20px;font-size:14px;color:var(--text2)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px}
+.context-menu{position:fixed;z-index:4000;min-width:160px;padding:6px;border-radius:var(--radius);background:var(--surface-hi);backdrop-filter:blur(12px);border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.context-menu-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s}
+.context-menu-item:hover{background:var(--surface);color:var(--text)}.context-menu-item.danger{color:var(--red)}.context-menu-item.danger:hover{background:rgba(238,90,111,.1)}
+.toast-container{position:fixed;top:16px;right:16px;z-index:5000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 16px;border-radius:var(--radius);background:var(--surface-hi);backdrop-filter:blur(10px);border:1px solid var(--border);font-size:13px;animation:fadeIn .3s;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}.toast.info{border-left:3px solid var(--accent)}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.avatar-cropper-overlay{position:fixed;inset:0;background:rgba(21,19,31,.8);z-index:3500;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.avatar-cropper{width:380px;padding:24px;background:var(--surface-hi);border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(12px)}
+.avatar-cropper-title{font-size:17px;font-weight:700;margin-bottom:16px}
+/* 裁剪舞台：尺寸由 JS 按图片原始比例设定 —— 整张图完整可见，不会被裁掉边缘 */
+.cropper-stage{position:relative;margin:0 auto 12px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface-lo);touch-action:none}
+.cropper-stage img{display:block;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+/* 圆形裁剪框：拖它取景；框外压暗用的是它的超大 box-shadow，被 stage 的 overflow 裁掉 */
+.cropper-frame{position:absolute;left:0;top:0;border-radius:50%;cursor:grab;box-shadow:0 0 0 9999px rgba(9,8,15,.62),inset 0 0 0 1.5px rgba(255,255,255,.85)}
+.cropper-frame.dragging{cursor:grabbing}
+.avatar-cropper-hint{font-size:11.5px;color:var(--text3);text-align:center;margin-bottom:10px}
+.avatar-cropper-slider input[type=range]{width:100%}
+.avatar-cropper-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.friends-page{flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease}
+.friends-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.friends-header h2{font-size:18px;font-weight:700}
+.friends-tabs{display:flex;gap:4px}
+.friends-tab{padding:6px 14px;border-radius:var(--radius);font-size:13px;color:var(--text3);cursor:pointer;transition:all .2s;border:none;background:none}
+.friends-tab.active{background:var(--surface);color:var(--text);font-weight:600}
+.friends-tab:hover{color:var(--text)}
+.friends-subtab.active{background:var(--surface);color:var(--text);font-weight:600}
+.friends-content{flex:1;display:flex;overflow:hidden}
+.friends-list-panel{width:300px;min-width:300px;border-right:1px solid var(--border);overflow-y:auto;padding:8px}
+.friend-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;transition:all .2s}
+.friend-item:hover,.friend-item.active{background:var(--surface)}
+.friend-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text3);flex-shrink:0;overflow:hidden}
+.friend-avatar img{width:100%;height:100%;object-fit:cover}
+.friend-avatar svg{width:20px;height:20px}
+.friend-info{flex:1;min-width:0}
+.friend-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-status{font-size:11px;color:var(--text3)}
+.friend-unread{margin-left:auto;background:var(--red);color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.chat-panel{flex:1;display:flex;flex-direction:column}
+.chat-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-header-name{font-size:15px;font-weight:600}
+.chat-warning{background:rgba(255,149,0,.12);color:var(--orange);padding:6px 20px;font-size:12px;text-align:center;border-bottom:1px solid var(--border)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:70%;display:flex;flex-direction:column;gap:4px}
+.chat-msg.self{align-self:flex-end}
+.chat-msg.other{align-self:flex-start}
+.chat-msg-bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word}
+.chat-msg.self .chat-msg-bubble{background:var(--grad);color:#fff;border-bottom-right-radius:4px}
+.chat-msg.other .chat-msg-bubble{background:var(--surface);color:var(--text);border-bottom-left-radius:4px}
+.chat-msg-time{font-size:10px;color:var(--text3);padding:0 4px}
+.chat-msg.self .chat-msg-time{text-align:right}
+.chat-msg-file{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.1);cursor:pointer;transition:background .2s}
+.chat-msg.other .chat-msg-file{background:var(--surface-lo)}
+.chat-msg-file svg{width:20px;height:20px;color:var(--accent);flex-shrink:0}
+.chat-msg-file-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-input-area{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);font-size:13px;outline:none;resize:none;min-height:40px;max-height:120px;font-family:inherit}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send-btn{padding:10px 16px;border-radius:var(--radius);background:var(--grad);color:#fff;border:none;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+.chat-send-btn:hover{opacity:.9}
+.chat-share-btn{padding:10px;border-radius:var(--radius);background:var(--btn-bg);color:var(--text2);border:1px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.chat-share-btn:hover{background:var(--surface-hi);color:var(--text)}
+.search-users-panel{padding:12px;border-bottom:1px solid var(--border)}
+.search-users-panel .input{font-size:12px;padding:8px 12px}
+.friend-request-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);margin-bottom:4px;background:var(--surface-lo)}
+.share-modal-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.share-modal-tab{padding:6px 14px;border-radius:var(--radius);font-size:13px;color:var(--text3);cursor:pointer;transition:all .2s;border:none;background:none}
+.share-modal-tab.active{color:var(--text);font-weight:600}
+.share-modal-tab:hover{color:var(--text)}
+.share-link-url{display:flex;gap:8px}
+.share-link-url .input{flex:1}
+.share-friend-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius);transition:all .2s;cursor:pointer;flex-wrap:wrap}
+.share-friend-item:hover{background:var(--surface)}
+.share-friend-item .friend-avatar{width:32px;height:32px}
+.perm-checks{display:flex;flex-wrap:wrap;gap:10px;width:100%;padding:6px 0 2px 42px}
+.share-perm-check{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer}
+.share-record{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;background:var(--surface-lo);margin-bottom:8px}
+.share-record.expired{opacity:.55}
+.share-record-meta{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.share-record-meta b{color:var(--text2)}
+/* ===== 分享设置：开关 / 展开区 / 自定义下拉 ===== */
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-size:13px;color:var(--text2)}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch-track{width:40px;height:22px;border-radius:11px;background:var(--surface);border:1px solid var(--border);position:relative;flex-shrink:0;transition:background .22s ease,border-color .22s ease}
+.switch-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text3);transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .22s ease}
+.switch:hover .switch-track{border-color:var(--accent)}
+.switch input:checked+.switch-track{background:var(--grad);border-color:transparent}
+.switch input:checked+.switch-track::after{transform:translateX(18px);background:#fff}
+.reveal{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .34s cubic-bezier(.4,0,.2,1),opacity .24s ease}
+.reveal.open{grid-template-rows:1fr;opacity:1}
+.reveal>div{overflow:hidden;min-height:0}
+.dd{position:relative}
+.dd-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--input-bg);color:var(--text);font-size:14px;cursor:pointer;transition:border-color .2s ease,background .2s ease}
+.dd-trigger:hover{border-color:var(--accent)}
+.dd.open .dd-trigger{border-color:var(--accent)}
+.dd-trigger svg{color:var(--text3);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.dd.open .dd-trigger svg{transform:rotate(180deg)}
+.dd-panel{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1),opacity .22s ease}
+.dd-panel>div{overflow:hidden;min-height:0}
+.dd.open .dd-panel{grid-template-rows:1fr;opacity:1}
+.dd-list{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-hi);padding:6px;margin-top:6px}
+.dd-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:background .16s ease,color .16s ease}
+.dd-item:hover{background:var(--surface);color:var(--text)}
+.dd-item.sel{color:var(--accent);font-weight:600}
+.dd-item.sel::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:8px;flex-shrink:0}
+/* ===== 通用下拉：把原生 <select> 升级成跟随主题的组件 ===== */
+.dd-select-native{position:absolute!important;left:0;top:0;width:1px!important;height:1px!important;opacity:0;pointer-events:none;margin:0;padding:0;border:0;overflow:hidden}
+.dd-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-trigger{width:100%}
+.dd-overlay .dd-panel{position:absolute;top:calc(100% + 5px);left:0;min-width:100%;width:max-content;max-width:min(340px,88vw);z-index:900}
+.dd-overlay .dd-list{margin-top:0;box-shadow:0 16px 38px rgba(0,0,0,.32)}
+.dd-sm .dd-trigger{padding:6px 10px;font-size:12px;gap:6px}
+.dd-sm .dd-trigger svg{width:12px;height:12px}
+.dd-sm .dd-item{padding:8px 10px;font-size:12px}
+/* ===== 行内自定义勾选框（复用 .cbx-box 的方框与动画）===== */
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer;user-select:none}
+.chk input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.chk .cbx-box{width:16px;height:16px;border-radius:5px;flex-shrink:0}
+.chk:hover .cbx-box{border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 4px rgba(244,114,182,.13)}
+.chk input:checked+.cbx-box{background:var(--grad);border-color:transparent;box-shadow:0 2px 10px rgba(244,114,182,.38)}
+.chk input:checked+.cbx-box::after{transform:rotate(45deg) scale(1);opacity:1}
+/* ===== 滑块 / 数字输入 跟随主题 ===== */
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:18px;width:100%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--surface);border:1px solid var(--border)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;margin-top:-5.5px;border-radius:50%;background:var(--grad);border:none;box-shadow:0 2px 8px rgba(244,114,182,.45);cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.15)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--surface);border:1px solid var(--border)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-radius:50%;background:#A78BFA;box-shadow:0 2px 8px rgba(244,114,182,.45);cursor:pointer}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.65;transition:opacity .2s ease}
+input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
+[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.9)}
+.share-result{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--panel-bg);margin-top:16px;animation:fadeIn .3s ease}
+.grant-row{display:flex;align-items:center;gap:8px;padding:10px;border-radius:var(--radius);background:var(--surface-lo);margin-bottom:6px;flex-wrap:wrap}
+.grant-perms{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+.form-group{margin-bottom:14px;text-align:left}
+.form-group label{display:block;font-size:12px;color:var(--text3);margin-bottom:4px}
+.sidebar-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;transition:color .2s ease}
+.sidebar-toggle:hover{color:var(--text2)}
+.sidebar-toggle .toggle-hint{margin-left:auto;font-weight:400;text-transform:none;font-size:10px;letter-spacing:0;opacity:.75}
+.sidebar-toggle .chev{width:12px;height:12px;flex-shrink:0;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-toggle.open .chev{transform:rotate(180deg)}
+.sidebar-mask{position:fixed;inset:0;background:rgba(9,7,16,.6);z-index:1100;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.sidebar-mask.show{opacity:1;pointer-events:auto}
+.mobile-only{display:none}
+@media(max-width:820px){
+  .mobile-only{display:flex}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:1200;width:264px;min-width:264px;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 0 40px rgba(0,0,0,.4)}
+  .sidebar.open{transform:none}
+  .topbar{padding:0 12px;gap:8px}
+  .topbar-domain,.topbar-storage,.topbar-channel,.storage-legend,#logoutBtn{display:none}
+  .topbar-search{max-width:100%;flex:1}
+  .topbar-logo-text{display:none}
+  .toolbar{flex-wrap:wrap;gap:6px;padding:10px 12px}
+  .toolbar-left{flex-wrap:wrap;gap:6px}
+  .toolbar-right{width:100%}
+  .file-area{padding:0 12px 16px}
+  .file-table th,.file-table td{padding:9px 8px}
+  .col-owner,.col-channel,.col-date{display:none}   .file-meta-m{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--text3)}
+  .file-name-text{max-width:32vw}
+  .file-actions{opacity:1!important}
+  .file-action[data-action="rename"]{display:none}
+  .file-action{width:24px;height:24px}   .file-action svg{width:13px;height:13px}   .file-action[data-action="records"]{display:none}   .file-actions{gap:2px}
+  .file-grid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+  .batch-bar{flex-wrap:wrap;padding:8px 12px}
+  .modal{width:calc(100vw - 24px);max-height:86vh;padding:18px}
+  .avatar-cropper{width:calc(100vw - 32px);padding:18px}
+  .upload-panel{left:12px;right:12px;bottom:12px;width:auto}
+  .friends-list-panel{width:100%;min-width:100%;max-height:38vh;flex-shrink:0;border-right:none;border-bottom:1px solid var(--border)}
+  .friends-content{flex-direction:column}
+  .chat-panel{flex:1;min-height:0}
+  .chat-msg{max-width:86%}
+  .friends-header{padding:12px;gap:8px}
+  .friends-header h2{font-size:16px}
+  .friends-tab{padding:5px 10px;font-size:12px}
+  .chat-header,.chat-input-area,.chat-messages{padding-left:12px;padding-right:12px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .context-menu{min-width:150px}
+}
+
+.apps-zone{position:relative;padding:6px 8px 0}
+.apps-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:4px;padding:7px 10px;border-radius:var(--radius);font-size:12px;color:var(--text2);background:var(--surface-lo);border:1px solid var(--border);cursor:pointer;font-family:inherit;transition:background .2s,color .2s,border-color .2s}
+.apps-toggle:hover{background:var(--surface);color:var(--text);border-color:var(--accent)}
+.apps-toggle .chev{width:12px;height:12px;flex-shrink:0;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.apps-toggle.open .chev{transform:rotate(180deg)}
+.apps-panel{position:absolute;left:8px;right:8px;bottom:calc(100% - 4px);z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 30px rgba(0,0,0,.32);pointer-events:none}
+.apps-panel.open{pointer-events:auto}
+.apps-panel .apps-wrap{padding:8px}
+.apps-panel .app-link{background:var(--surface-lo)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toasts"></div>
+<script>
+const CLOUD_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>';
+const SUN_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+const MOON_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+const LOGIN_PAGE='<div class="login-page"><div class="login-card glass"><div class="login-logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div><div class="login-title">FileStore网盘</div><div class="login-subtitle">your-domain.com</div><input class="input login-input" id="loginInput" type="text" placeholder="请输入用户名" autocomplete="off" autofocus><button class="btn btn-accent login-btn" id="loginBtn">进入网盘</button><div class="login-error" id="loginError"></div><div class="login-rate" id="loginRate"></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.7">凭用户名直接进入，无需密码<br>管理员请到 <a href="/admin.html" style="color:var(--accent)">管理后台</a> 登录</div></div></div>';
+
+function escHtml(s){const d=document.createElement('div');d.textContent=(s===undefined||s===null)?'':s;return d.innerHTML}
+/* ===== 自定义下拉：把原生 <select> 升级成跟随主题的组件（原生 select 仍持有值，所有既有逻辑不变）===== */
+const DD_CHEV='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+function closeAllDropdowns(){document.querySelectorAll('.dd.open').forEach(d=>d.classList.remove('open'))}
+function enhanceSelect(sel,opt){
+  if(!sel||sel.dataset.ddReady)return;
+  opt=opt||{};
+  const width=opt.width||sel.style.width||'auto';
+  sel.dataset.ddReady='1';
+  const dd=document.createElement('div');
+  dd.className='dd'+(opt.overlay?' dd-overlay':'')+(opt.small?' dd-sm':'');
+  if(width)dd.style.width=width;
+  sel.parentNode.insertBefore(dd,sel);
+  dd.appendChild(sel);
+  sel.classList.add('dd-select-native');
+  sel.setAttribute('tabindex','-1');
+  const trigger=document.createElement('button');
+  trigger.type='button';trigger.className='dd-trigger';
+  trigger.setAttribute('aria-haspopup','listbox');
+  trigger.innerHTML='<span class="dd-label"></span>'+DD_CHEV;
+  const panel=document.createElement('div');panel.className='dd-panel';
+  const list=document.createElement('div');list.className='dd-list';
+  panel.appendChild(list);dd.appendChild(trigger);dd.appendChild(panel);
+  const label=trigger.querySelector('.dd-label');
+  const sync=()=>{
+    const i=sel.selectedIndex,o=sel.options[i];
+    label.textContent=o?o.textContent:'—';
+    list.innerHTML=Array.from(sel.options).map((op,k)=>'<div class="dd-item'+(k===i?' sel':'')+'" data-i="'+k+'">'+escHtml(op.textContent)+'</div>').join('');
+  };
+  new MutationObserver(sync).observe(sel,{childList:true,subtree:true,attributes:true});
+  trigger.addEventListener('click',ev=>{ev.stopPropagation();const was=dd.classList.contains('open');closeAllDropdowns();if(!was)dd.classList.add('open')});
+  list.addEventListener('click',ev=>{const it=ev.target.closest('.dd-item');if(!it)return;const k=parseInt(it.dataset.i,10);if(k!==sel.selectedIndex){sel.selectedIndex=k;sel.dispatchEvent(new Event('change',{bubbles:true}))}sync();dd.classList.remove('open')});
+  sync();
+}
+function enhanceSelects(root){
+  (root||document).querySelectorAll('select').forEach(sel=>{
+    if(sel.dataset.ddReady)return;
+    const inModal=!!sel.closest('.modal');
+    const full=sel.classList.contains('select');
+    enhanceSelect(sel,{overlay:!inModal,small:!inModal&&!full,width:sel.style.width||(full?'100%':'auto')});
+  });
+}
+function formatSize(b){if(!b||b===0)return'0 B';const u=['B','KB','MB','GB','TB'];const i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(i>0?1:0)+' '+u[i]}
+function getFileType(f){const n=String((f&&(f.fileName||f.name||f.id))||'').toLowerCase();
+  if(/\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|tiff|tif|avif|heic|heif)$/.test(n))return{type:'image',color:'#EC4899',emoji:'\uD83D\uDDBC\uFE0F'};
+  if(/\.(mp4|avi|mkv|mov|wmv|flv|webm|m4v|mpeg|mpg|3gp|ts)$/.test(n))return{type:'video',color:'#8B5CF6',emoji:'\uD83C\uDFAC'};
+  if(/\.(mp3|wav|flac|aac|ogg|wma|m4a|opus|aiff|mid)$/.test(n))return{type:'audio',color:'#60A5FA',emoji:'\uD83C\uDFB5'};
+  if(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv|tsv|md|markdown|rtf|odt|ods|odp|pages|numbers|key|log)$/.test(n))return{type:'doc',color:'#34C759',emoji:'\uD83D\uDCC4'};
+  if(/\.(zip|rar|7z|tar|gz|tgz|bz2|xz|zst)$/.test(n))return{type:'archive',color:'#FF9500',emoji:'\uD83D\uDCE6'};
+  if(/\.(json|json5|xml|yml|yaml|toml|ini|conf|cfg|env|properties|js|mjs|cjs|ts|tsx|jsx|py|java|c|cc|cpp|cxx|h|hpp|cs|go|rs|rb|php|pl|lua|swift|kt|kts|scala|sql|sh|bash|zsh|bat|cmd|ps1|vue|svelte|dart)$/.test(n)||n==='dockerfile'||n==='makefile')return{type:'code',color:'#14B8A6',emoji:'\uD83D\uDCDC'};
+  if(/\.(bin|iso|img|dmg|vhd|vhdx|raw|vmdk|qcow2|dat|db|sqlite|sqlite3|mdb|bak)$/.test(n))return{type:'disk',color:'#64748B',emoji:'\uD83D\uDCBE'};
+  if(/\.(exe|msi|apk|ipa|deb|rpm|appimage|dll|so|dylib|jar|class)$/.test(n))return{type:'app',color:'#F59E0B',emoji:'\u2699\uFE0F'};
+  if(/\.(psd|ai|sketch|fig|xd|eps|indd|afdesign|afphoto)$/.test(n))return{type:'design',color:'#A855F7',emoji:'\uD83C\uDFA8'};
+  if(/\.(ttf|otf|woff|woff2|eot)$/.test(n))return{type:'font',color:'#0EA5E9',emoji:'\uD83D\uDD24'};
+  if(/\.(epub|mobi|azw|azw3|fb2|djvu)$/.test(n))return{type:'ebook',color:'#22C55E',emoji:'\uD83D\uDCDA'};
+  if(/\.(srt|vtt|ass|ssa|sub)$/.test(n))return{type:'subtitle',color:'#38BDF8',emoji:'\uD83D\uDCAC'};
+  return{type:'other',color:'#8A82B8',emoji:'\uD83D\uDCC3'}}
+function getFileIcon(f){const t=getFileType(f);return{bg:t.color+'22',emoji:t.emoji,color:t.color}}
+/* 旧的写死版本已删除，统一用上面注册表驱动的 getChannelBadge */
+function fileNameOf(f){return f.fileName||f.name||f.id||''}
+function shortName(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s}
+
+// 统一头像渲染：有头像用图片，没有就用云盘图标
+function avatarInitial(u){const n=String((u&&(u.displayName||u.username||u.name))||'').trim();return n?n.slice(0,1).toUpperCase():''}
+function avatarFallbackSpan(u,px,show){const ini=avatarInitial(u);const fs=Math.max(10,Math.round((px||36)*0.45));
+  return '<span class="avatar-fb" style="width:'+(px||36)+'px;height:'+(px||36)+'px;display:'+(show?'flex':'none')+';align-items:center;justify-content:center;font-weight:700;font-size:'+fs+'px;color:#fff;background:linear-gradient(135deg,#8B5CF6,#EC4899)">'+(ini||CLOUD_SVG)+'</span>'}
+function avatarImgError(img){try{img.style.display='none';const s=img.nextElementSibling;if(s&&s.classList.contains('avatar-fb'))s.style.display='flex'}catch(e){}}
+function avatarHTML(u,size){
+  const px=size||36;
+  if(u&&u.avatar)return'<img class="avatar-img" src="'+escHtml(u.avatar)+'" alt="" onerror="avatarImgError(this)">'+avatarFallbackSpan(u,px,false);
+  return avatarFallbackSpan(u,px,true);
+}
+
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);state.theme=t;localStorage.setItem('theme',t);updateThemeBtn()}
+function toggleTheme(){applyTheme(state.theme==='dark'?'light':'dark')}
+function updateThemeBtn(){const icon=state.theme==='dark'?SUN_SVG:MOON_SVG;['themeBtn','themeToggle'].forEach(id=>{const b=document.getElementById(id);if(b)b.innerHTML=icon})}
+
+const MAIN_LAYOUT='<div class="main-layout"><aside class="sidebar"><div class="sidebar-header"><div class="sidebar-logo"><div class="sidebar-logo-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div><div class="sidebar-logo-text">FileStore网盘</div></div><div class="sidebar-domain">your-domain.com</div></div><div class="sidebar-upload"><button class="btn btn-accent" id="uploadBtn"><span style="display:flex;align-items:center;justify-content:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>上传文件</span></button><div class="sidebar-upload-channel"><span>上传通道</span><select id="uploadChannelSide"><option value="auto">自动</option></select></div></div><nav class="sidebar-nav"><div class="sidebar-nav-item tree-root active" id="allFilesRow" data-nav="all" title="点击展开 / 收起"><span class="tree-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span><svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="tree-label">全部文件</span></div><div class="reveal tree-kids" id="allFilesTree"><div class="tree-kids-inner"><div id="folderTree" class="tree-branch"></div><div class="sidebar-nav-item tree-row tree-sub" data-nav="recent"><span class="tree-chev empty"></span><svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="tree-label">最近上传</span></div><div class="sidebar-nav-item tree-row tree-sub" data-nav="images"><span class="tree-chev empty"></span><svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span class="tree-label">图片</span></div><div class="sidebar-nav-item tree-row tree-sub" data-nav="videos"><span class="tree-chev empty"></span><svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span class="tree-label">视频</span></div><div class="sidebar-nav-item tree-row tree-sub" data-nav="docs"><span class="tree-chev empty"></span><svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="tree-label">文档</span></div><div id="groupSharedFolders"></div></div></div><div style="height:1px;background:var(--border);margin:8px 12px"></div><div class="sidebar-nav-item" data-nav="friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>我的好友<span class="unread-badge" id="friendUnreadBadge" style="display:none">0</span></div><div class="sidebar-nav-item" data-nav="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>消息<span class="unread-badge" id="chatUnreadBadge" style="display:none">0</span></div><div style="height:1px;background:var(--border);margin:8px 12px"></div><div class="sidebar-section">存储通道</div><div id="channelsContainer"></div><div id="groupsContainer"></div><div class="sidebar-section sidebar-toggle" data-toggle="activityReveal"><span id="activityTitle">组内动态</span><span class="toggle-hint">保留90天</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="reveal" id="activityReveal"><div><div class="activity-log" id="activityLog"></div></div></div><div class="sidebar-section" id="tagsSection" style="display:none">标签</div><div id="tagsContainer" style="padding:4px 12px;display:flex;flex-wrap:wrap;gap:4px"></div></nav><div class="apps-zone"><div class="reveal apps-panel" id="appsReveal"><div class="apps-wrap"><a class="app-link" href="https://mailproxy.example.com/" target="_blank" rel="noopener"><span class="app-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span class="app-name">mailproxy 邮箱</span><span class="app-go">↗</span></a><a class="app-link" href="https://vpn.example.com/admin" target="_blank" rel="noopener"><span class="app-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span class="app-name">VPN 边缘隧道</span><span class="app-go">↗</span></a></div></div><button type="button" class="apps-toggle sidebar-toggle" data-toggle="appsReveal"><span>其他应用</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button></div><div class="sidebar-footer"><a class="sidebar-footer-btn" href="/admin.html" id="adminJumpBtn" title="进入管理后台"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>管理后台</a><button class="sidebar-footer-btn" id="sidebarLogout" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button></div></aside><div class="sidebar-mask" id="sidebarMask"></div><div class="content"><div class="topbar"><button class="topbar-btn mobile-only" id="menuBtn" title="菜单"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><div class="topbar-logo"><div class="topbar-logo-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div><div class="topbar-logo-text">FileStore</div><span class="topbar-domain">your-domain.com</span></div><div class="topbar-storage"><div class="topbar-storage-bar" id="storageBar"><div class="topbar-storage-seg others" id="storageOthers" style="width:0%"></div><div class="topbar-storage-seg self" id="storageSelf" style="width:0%"></div><div class="topbar-storage-seg available"></div></div><span class="topbar-storage-text" id="storageText">0 B / 0 B</span></div><div class="topbar-channel"><select id="uploadChannelSelect"><option value="auto">自动通道</option></select></div><div class="topbar-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="input" id="searchInput" placeholder="搜索文件..."></div><div class="topbar-actions"><button class="topbar-btn theme-btn" id="themeBtn" title="切换主题"></button><button class="topbar-btn" id="logoutBtn" title="退出登录"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button><div class="user-avatar" id="userAvatar" title="用户中心" onclick="showUserCenter()"></div></div></div><div class="storage-legend" id="storageLegend"></div><div class="toolbar" id="toolbar"><div class="toolbar-left"><div class="view-toggle"><button id="viewList" class="active" title="列表视图"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button><button id="viewGrid" title="网格视图"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button></div><select class="sort-select" id="sortSelect"><option value="date-desc">最新上传</option><option value="date-asc">最早上传</option><option value="name-asc">名称 A-Z</option><option value="name-desc">名称 Z-A</option><option value="size-desc">大小 ↓</option><option value="size-asc">大小 ↑</option></select><button class="multi-btn" id="multiSelectBtn" title="开启多选"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>多选<span class="cnt" id="multiCount">0</span></button><button class="multi-btn" id="newFolderBtn" title="在当前目录新建文件夹"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>新建文件夹</button></div><div class="toolbar-right"><span id="fileCount" style="font-size:12px;color:var(--text3)"></span></div></div><div class="crumb-bar" id="crumbBar" style="display:none"></div><div class="batch-bar" id="batchBar" style="display:none"><span id="batchCount">已选择 0 个文件</span><button class="btn btn-ghost" id="batchDownBtn">批量下载</button><button class="btn btn-ghost" id="batchMoveBtn">移动到</button><button class="btn btn-ghost" id="batchTranBtn">转通道</button><button class="btn btn-danger" id="batchDelBtn">批量删除</button><button class="btn btn-ghost" id="batchClearBtn">取消选择</button></div><div class="file-area" id="fileArea"><div class="loading" id="loadingIndicator" style="display:none"><div class="spinner"></div></div></div></div></div>';
+const DROP_OVERLAY='<div class="drop-overlay" id="dropOverlay" style="display:none"><div class="drop-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p>拖放文件到此处</p><span>支持任意文件类型</span></div></div>';
+
+let state={files:[],selected:new Set(),selectMode:false,currentDir:'',search:'',sort:'date-desc',order:'desc',view:'list',nav:'all',uploadChannel:'auto',quota:{used:0,total:0,selfUsed:0,othersUsed:0,available:0},channels:[],r2Quota:{used:0,total:0},theme:localStorage.getItem('theme')||'dark',start:0,count:50,hasMore:true,loading:false,friends:[],chatMessages:[],chatFriend:null,unread:0,currentView:'files',groups:[],activityLogs:[],grants:{grantedByMe:[],grantedToMe:[]},totalCount:0,folders:[],openFolders:new Set(),allFilesOpen:false};
+let currentUserProfile={};
+let chatPollTimerId=null;
+let loginAttempts=0,rateLimitUntil=0;
+
+async function checkSession(){
+  const r=await fetch('/api/auth/sessionCheck');
+  const d=await r.json();
+  if(d.valid){
+    if(d.user)currentUserProfile=d.user;
+    showMainPage();
+    return;
+  }
+  showLoginPage();
+}
+
+function showLoginPage(){const app=document.getElementById('app');app.innerHTML=LOGIN_PAGE+'<button class="theme-toggle" id="themeToggle"></button>';updateThemeBtn();document.getElementById('themeToggle').addEventListener('click',toggleTheme);const inp=document.getElementById('loginInput');const btn=document.getElementById('loginBtn');const submit=()=>doLogin();inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});btn.addEventListener('click',submit);setTimeout(()=>inp.focus(),100)}
+
+async function doLogin(){const inp=document.getElementById('loginInput');const errEl=document.getElementById('loginError');const rateEl=document.getElementById('loginRate');const btn=document.getElementById('loginBtn');const username=inp.value.trim();if(!username){errEl.textContent='请输入用户名';return}const now=Date.now();if(now<rateLimitUntil){rateEl.textContent='请等待 '+Math.ceil((rateLimitUntil-now)/1000)+' 秒后重试';return}if(loginAttempts>=5){rateLimitUntil=Date.now()+60000;loginAttempts=0;rateEl.textContent='尝试次数过多，请等待 60 秒';return}btn.disabled=true;btn.textContent='登录中...';errEl.textContent='';const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,authCode:username})});if(r.ok){loginAttempts=0;const d=await r.json();if(d&&d.user)currentUserProfile=d.user;else await loadUserProfile();showMainPage()}else{let msg='用户不存在';try{const d=await r.json();if(d&&d.message)msg=d.message}catch(e){}loginAttempts++;errEl.textContent=msg+'（还可尝试 '+(5-loginAttempts)+' 次）'}btn.disabled=false;btn.textContent='进入网盘'}
+
+async function doLogout(){await fetch('/api/auth/logout',{method:'POST'});stopChatPoll();showLoginPage()}
+
+function showMainPage(){const app=document.getElementById('app');app.innerHTML=MAIN_LAYOUT+'<div class="upload-panel" id="uploadPanel"></div>'+DROP_OVERLAY;updateThemeBtn();updateUserAvatar();document.getElementById('themeBtn').addEventListener('click',toggleTheme);document.getElementById('logoutBtn').addEventListener('click',doLogout);document.getElementById('uploadBtn').addEventListener('click',triggerUpload);document.getElementById('searchInput').addEventListener('input',debounceSearch);document.getElementById('sortSelect').addEventListener('change',()=>loadFiles());document.getElementById('viewGrid').addEventListener('click',()=>setView('grid'));document.getElementById('viewList').addEventListener('click',()=>setView('list'));document.getElementById('batchDownBtn').addEventListener('click',batchDownload);document.getElementById('batchDelBtn').addEventListener('click',batchDelete);document.getElementById('batchClearBtn').addEventListener('click',clearSelection);document.getElementById('multiSelectBtn').addEventListener('click',()=>toggleMultiSelect());document.getElementById('uploadChannelSelect')?.addEventListener('change',e=>setUploadChannel(e.target.value));
+if(document.getElementById('uploadChannelSide'))document.getElementById('uploadChannelSide').addEventListener('change',e=>setUploadChannel(e.target.value));
+if(document.getElementById('newFolderBtn'))document.getElementById('newFolderBtn').addEventListener('click',()=>showNewFolderModal());
+if(document.getElementById('batchMoveBtn'))document.getElementById('batchMoveBtn').addEventListener('click',()=>showMoveModal(Array.from(state.selected)));
+    if(document.getElementById('batchTranBtn'))document.getElementById('batchTranBtn').addEventListener('click',()=>showTransferModal(Array.from(state.selected)));
+if(document.getElementById('sidebarLogout'))document.getElementById('sidebarLogout').addEventListener('click',doLogout);
+if(document.getElementById('menuBtn'))document.getElementById('menuBtn').addEventListener('click',()=>toggleSidebar());
+if(document.getElementById('sidebarMask'))document.getElementById('sidebarMask').addEventListener('click',()=>toggleSidebar(false));
+setupCollapsibles();enhanceSelects();setupNav();setupDragDrop();setupPaste();setupScroll();loadChannelTypes();loadQuota();loadFolders();loadFiles();loadTags();loadUserProfile();loadChannels();loadGroups();loadActivityLogs();loadFriendsList();pollUnread()}
+
+function setupNav(){const nav=document.querySelector('.sidebar-nav');if(!nav)return;
+nav.addEventListener('click',e=>{
+  const row=e.target.closest('.sidebar-nav-item');if(!row)return;
+  const chev=e.target.closest('.tree-chev');
+  const folder=row.dataset.folder;
+  const groupId=row.dataset.groupId;
+  if(chev){
+    e.stopPropagation();
+    if(folder)toggleFolderNode(folder);
+    else if(row.id==='allFilesRow')toggleAllFiles();
+    return;
+  }
+  if(groupId){e.stopPropagation();openGroupSharedFolder(groupId,row.querySelector('.tree-label').textContent.replace('的共享文件夹',''));return}
+  if(folder){e.stopPropagation();enterFolder(folder);return}
+  const n=row.getAttribute('data-nav');if(!n)return;
+  if(row.id==='allFilesRow'){
+    state.nav='all';state.currentDir='';state.start=0;state.search='';
+    const si=document.getElementById('searchInput');if(si)si.value='';
+    toggleAllFiles();
+    syncTreeActive();showFilesView();loadFiles();toggleSidebar(false);
+    return;
+  }
+  state.nav=n;state.currentDir='';state.start=0;
+  toggleAllFiles(true);
+  syncTreeActive();
+  if(n==='friends'){showFriendsPage()}else if(n==='chat'){showChatPage()}else{showFilesView();loadFiles()}
+  toggleSidebar(false)})}
+// 手机端抽屉侧栏
+function toggleSidebar(open){const sb=document.querySelector('.sidebar');const mk=document.getElementById('sidebarMask');if(!sb)return;const on=(open===undefined)?!sb.classList.contains('open'):!!open;sb.classList.toggle('open',on);if(mk)mk.classList.toggle('show',on)}
+// 侧栏可折叠区块（默认收起，点击丝滑展开）
+function setupCollapsibles(){document.querySelectorAll('.sidebar-toggle').forEach(t=>{t.addEventListener('click',()=>{const el=document.getElementById(t.dataset.toggle);if(!el)return;const open=el.classList.toggle('open');t.classList.toggle('open',open)})})}
+function showFilesView(){state.currentView='files';stopChatPoll();const toolbar=document.getElementById('toolbar');const batchBar=document.getElementById('batchBar');const fileArea=document.getElementById('fileArea');if(toolbar)toolbar.style.display='';if(batchBar&&state.selected.size>0)batchBar.style.display='flex';if(fileArea)fileArea.style.display='';const fp=document.querySelector('.friends-page');if(fp)fp.remove()}
+
+/* ============ 好友 ============ */
+function showFriendsPage(){state.currentView='friends';const toolbar=document.getElementById('toolbar');const batchBar=document.getElementById('batchBar');const fileArea=document.getElementById('fileArea');if(toolbar)toolbar.style.display='none';if(batchBar)batchBar.style.display='none';if(fileArea)fileArea.style.display='none';let fp=document.querySelector('.friends-page');if(!fp){fp=document.createElement('div');fp.className='friends-page';document.querySelector('.content').appendChild(fp)}renderFriendsPage(fp)}
+
+function renderFriendsPage(container){container.innerHTML='<div class="friends-header"><h2>我的好友</h2><div class="friends-tabs"><button class="friends-tab active" data-ftab="friends">好友列表</button><button class="friends-tab" data-ftab="mygroups">我的组</button><button class="friends-tab" data-ftab="grants">网盘授权</button></div></div><div class="friends-content"><div class="friends-list-panel" id="friendsListPanel"></div><div class="chat-panel" id="friendsDetailPanel"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">选择一个好友开始聊天</div></div></div>';container.querySelectorAll('.friends-tab').forEach(tab=>{tab.addEventListener('click',()=>{container.querySelectorAll('.friends-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');renderFriendsListPanel(tab.dataset.ftab)})});renderFriendsListPanel('friends')}
+
+function renderFriendsListPanel(tab){const panel=document.getElementById('friendsListPanel');if(!panel)return;if(tab==='grants'){panel.innerHTML='<div id="grantsList"><div class="loading"><div class="spinner"></div></div></div>';loadGrants();return}if(tab==='mygroups'){panel.innerHTML='<div style="display:flex;gap:8px;padding:0 0 12px 0"><button class="btn btn-accent" onclick="showCreateGroupModal()" style="flex:1;font-size:12px">+ 新建组</button><button class="btn btn-ghost" onclick="showJoinGroupModal()" style="flex:1;font-size:12px">+ 加入组</button></div><div id="myGroupsList"><div class="loading"><div class="spinner"></div></div></div>';loadMyGroups();return}panel.innerHTML='<div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-ghost friends-subtab active" data-fsub="list" style="flex:1;font-size:12px;padding:6px 0">好友列表</button><button class="btn btn-ghost friends-subtab" data-fsub="requests" style="flex:1;font-size:12px;padding:6px 0">好友请求</button><button class="btn btn-ghost friends-subtab" data-fsub="search" style="flex:1;font-size:12px;padding:6px 0">搜索用户</button></div><div id="friendsSubContent"></div>';panel.querySelectorAll('.friends-subtab').forEach(btn=>{btn.addEventListener('click',()=>{panel.querySelectorAll('.friends-subtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFriendsSubPanel(btn.dataset.fsub)})});renderFriendsSubPanel('list')}
+
+function renderFriendsSubPanel(sub){const el=document.getElementById('friendsSubContent');if(!el)return;if(sub==='search'){el.innerHTML='<div class="search-users-panel"><input class="input" id="searchUserInput" placeholder="搜索用户名..."></div><div id="searchResults"></div>';const inp=document.getElementById('searchUserInput');let timer;inp.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>searchUsers(inp.value),300)});return}if(sub==='requests'){el.innerHTML='<div id="friendRequestsList"><div class="loading"><div class="spinner"></div></div></div>';loadFriendRequests();return}el.innerHTML='<div id="friendsListItems"><div class="loading"><div class="spinner"></div></div></div>';loadFriendsList()}
+
+async function loadFriendsList(){const r=await fetch('/api/friends');const d=await r.json();if(d.code!==0)return;state.friends=(d.data&&d.data.friends)||[];renderFriendsListItems()}
+
+function renderFriendsListItems(){const el=document.getElementById('friendsListItems');if(!el)return;if(state.friends.length===0){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">暂无好友，去「搜索用户」添加</div>';return}el.innerHTML=state.friends.map(f=>{const name=escHtml(f.displayName||f.username||'?');return'<div class="friend-item" data-fid="'+escHtml(f.userId)+'" onclick="selectFriend(\''+escHtml(f.userId)+'\')"><div class="friend-avatar">'+avatarHTML(f,36)+'</div><div class="friend-info"><div class="friend-name">'+name+'</div><div class="friend-status">'+escHtml(f.username||'')+'</div></div></div>'}).join('')}
+
+async function loadFriendRequests(){const r=await fetch('/api/friends');const d=await r.json();const requests=(d.code===0&&d.data&&d.data.pendingRequests)||[];const el=document.getElementById('friendRequestsList');if(!el)return;if(requests.length===0){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">暂无好友请求</div>';return}el.innerHTML=requests.map(rq=>'<div class="friend-request-item"><div class="friend-avatar">'+avatarHTML(rq,36)+'</div><div style="flex:1;font-size:13px">'+escHtml(rq.displayName||rq.username||'?')+'</div><button class="btn btn-accent" onclick="acceptFriend(\''+escHtml(rq.id)+'\')" style="padding:4px 10px;font-size:11px">接受</button><button class="btn btn-ghost" onclick="rejectFriend(\''+escHtml(rq.id)+'\')" style="padding:4px 10px;font-size:11px">拒绝</button></div>').join('')}
+
+async function searchUsers(q){const el=document.getElementById('searchResults');if(!el)return;if(!q||q.length<1){el.innerHTML='';return}const r=await fetch('/api/friends/search?q='+encodeURIComponent(q));const d=await r.json();const users=(d.code===0&&Array.isArray(d.data))?d.data:[];if(users.length===0){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">未找到用户</div>';return}el.innerHTML=users.map(u=>'<div class="friend-request-item"><div class="friend-avatar">'+avatarHTML(u,36)+'</div><div style="flex:1;font-size:13px">'+escHtml(u.displayName||u.username||'?')+'<div style="font-size:11px;color:var(--text3)">'+escHtml(u.username||'')+'</div></div><button class="btn btn-accent" onclick="sendFriendRequest(\''+escHtml(u.id)+'\')" style="padding:4px 10px;font-size:11px">添加好友</button></div>').join('')}
+
+async function sendFriendRequest(friendId){const r=await fetch('/api/friends/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({friendId})});const d=await r.json();showToast(d.code===0?'好友请求已发送':(d.message||'发送失败'),d.code===0?'success':'error')}
+async function acceptFriend(id){const r=await fetch('/api/friends/'+encodeURIComponent(id)+'/accept',{method:'POST'});const d=await r.json();showToast(d.code===0?'已接受好友请求':'操作失败',d.code===0?'success':'error');loadFriendRequests();loadFriendsList()}
+async function rejectFriend(id){await fetch('/api/friends/'+encodeURIComponent(id)+'/reject',{method:'DELETE'});showToast('已拒绝','success');loadFriendRequests()}
+
+function selectFriend(fid){document.querySelectorAll('.friend-item').forEach(el=>el.classList.remove('active'));const item=document.querySelector('.friend-item[data-fid="'+CSS.escape(fid)+'"]');if(item)item.classList.add('active');state.chatFriend=state.friends.find(f=>f.userId===fid)||{userId:fid};renderChatPanel();loadChatMessages()}
+
+/* ============ 网盘授权 ============ */
+async function loadGrants(){const r=await fetch('/api/friends/grants');const d=await r.json();state.grants=(d.code===0&&d.data)||{grantedByMe:[],grantedToMe:[]};renderGrants()}
+
+function renderGrants(){const el=document.getElementById('grantsList');if(!el)return;
+  const friends=state.friends;
+  const byMe=state.grants.grantedByMe||[];
+  let html='<div class="search-users-panel" style="border:none;padding:8px 4px"><div style="font-size:13px;font-weight:600;color:var(--text)">授权好友访问我的网盘</div><div style="font-size:11px;color:var(--text3);margin-top:4px">勾选后该好友可以看到我的全部文件；勾「管理」还能增删改。</div></div>';
+  if(friends.length===0){html+='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">还没有好友</div>';}
+  html+=friends.map(f=>{const g=byMe.find(x=>x.granteeId===f.userId);const perms=g?g.permissions:[];return'<div class="grant-row" data-uid="'+escHtml(f.userId)+'"><div class="friend-avatar" style="width:32px;height:32px">'+avatarHTML(f,32)+'</div><div style="font-size:13px">'+escHtml(f.displayName||f.username)+'</div><div class="grant-perms"><label class="share-perm-check chk"><input type="checkbox" data-gperm="read" '+(perms.includes('read')?'checked':'')+'><span class="cbx-box"></span>查看全部文件</label><label class="share-perm-check chk"><input type="checkbox" data-gperm="manage" '+(perms.includes('manage')?'checked':'')+'><span class="cbx-box"></span>可管理操作</label><button class="btn btn-accent" style="padding:4px 10px;font-size:11px" onclick="saveGrant(\''+escHtml(f.userId)+'\')">保存</button></div></div>'}).join('');
+  const toMe=state.grants.grantedToMe||[];
+  html+='<div class="search-users-panel" style="border:none;padding:12px 4px 4px"><div style="font-size:13px;font-weight:600;color:var(--text)">别人授权给我的网盘</div></div>';
+  html+=toMe.length===0?'<div style="padding:8px 4px;color:var(--text3);font-size:12px">暂无</div>':toMe.map(g=>'<div class="grant-row"><div class="friend-avatar" style="width:32px;height:32px">'+avatarHTML(g,32)+'</div><div style="font-size:13px">'+escHtml(g.displayName||g.username)+'</div><div class="grant-perms"><span class="badge" style="background:var(--surface);color:var(--text2)">'+escHtml(g.permissions.join(' / '))+'</span></div></div>').join('');
+  el.innerHTML=html}
+
+async function saveGrant(uid){const row=document.querySelector('.grant-row[data-uid="'+CSS.escape(uid)+'"]');if(!row)return;const perms=Array.from(row.querySelectorAll('[data-gperm]:checked')).map(c=>c.dataset.gperm);const r=await fetch('/api/friends/grants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({granteeId:uid,permissions:perms})});const d=await r.json();showToast(d.code===0?'授权已更新':(d.message||'操作失败'),d.code===0?'success':'error');if(d.code===0){loadGrants();loadFiles()}}
+
+/* ============ 聊天 ============ */
+function showChatPage(){state.currentView='chat';const toolbar=document.getElementById('toolbar');const batchBar=document.getElementById('batchBar');const fileArea=document.getElementById('fileArea');if(toolbar)toolbar.style.display='none';if(batchBar)batchBar.style.display='none';if(fileArea)fileArea.style.display='none';let fp=document.querySelector('.friends-page');if(!fp){fp=document.createElement('div');fp.className='friends-page';document.querySelector('.content').appendChild(fp)}fp.innerHTML='<div class="friends-header"><h2>消息</h2></div><div class="friends-content"><div class="friends-list-panel" id="chatFriendsList"></div><div class="chat-panel" id="chatPanel"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">选择一个好友开始聊天</div></div></div>';loadChatFriendsList();startChatPoll()}
+
+async function loadChatFriendsList(){const r=await fetch('/api/friends');const d=await r.json();if(d.code!==0)return;state.friends=(d.data&&d.data.friends)||[];const el=document.getElementById('chatFriendsList');if(!el)return;if(state.friends.length===0){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">暂无好友</div>';return}el.innerHTML=state.friends.map(f=>'<div class="friend-item" data-fid="'+escHtml(f.userId)+'" onclick="selectChatFriend(\''+escHtml(f.userId)+'\')"><div class="friend-avatar">'+avatarHTML(f,36)+'</div><div class="friend-info"><div class="friend-name">'+escHtml(f.displayName||f.username||'?')+'</div><div class="friend-status">'+escHtml(f.username||'')+'</div></div></div>').join('')}
+
+function selectChatFriend(fid){document.querySelectorAll('#chatFriendsList .friend-item').forEach(el=>el.classList.remove('active'));const item=document.querySelector('#chatFriendsList .friend-item[data-fid="'+CSS.escape(fid)+'"]');if(item)item.classList.add('active');state.chatFriend=state.friends.find(f=>f.userId===fid)||{userId:fid};state.chatMessages=[];renderChatPanel();loadChatMessages()}
+
+function renderChatPanel(){const cp=document.getElementById('chatPanel');if(!cp)return;const f=state.chatFriend||{};const name=f.displayName||f.username||'?';cp.innerHTML='<div class="chat-header"><div class="friend-avatar" style="width:32px;height:32px">'+avatarHTML(f,32)+'</div><div class="chat-header-name">'+escHtml(name)+'</div></div><div class="chat-warning">Cloudflare Workers 不支持 WebSocket，消息可能有几秒延迟</div><div class="chat-messages" id="chatMessages"></div><div class="chat-input-area"><button class="chat-share-btn" title="分享我网盘里的文件" onclick="showChatShareModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button><textarea class="chat-input" id="chatInput" placeholder="输入消息..." rows="1"></textarea><button class="chat-send-btn" id="chatSendBtn">发送</button></div>';document.getElementById('chatSendBtn').addEventListener('click',sendChatMessage);const ci=document.getElementById('chatInput');ci.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage()}});ci.addEventListener('input',()=>{ci.style.height='auto';ci.style.height=Math.min(ci.scrollHeight,120)+'px'})}
+
+async function loadChatMessages(){if(!state.chatFriend)return;const fid=state.chatFriend.userId;const r=await fetch('/api/chat/messages?friendId='+encodeURIComponent(fid));const d=await r.json();if(d.code!==0)return;state.chatMessages=(d.data&&d.data.messages)||[];renderChatMessages()}
+
+function renderChatMessages(){const el=document.getElementById('chatMessages');if(!el)return;if(state.chatMessages.length===0){el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px">暂无消息</div>';return}el.innerHTML=state.chatMessages.map(m=>{const isSelf=m.senderId===currentUserProfile.id;const cls=isSelf?'self':'other';const time=m.createdAt?new Date(m.createdAt.replace(' ','T')+'Z').toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';let content='';if(m.messageType==='file'){content='<div class="chat-msg-file" onclick="downloadChatFile(\''+escHtml(m.fileId||'')+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="chat-msg-file-name">'+escHtml(m.message||'文件')+'</span></div>'}else{content='<div class="chat-msg-bubble">'+escHtml(m.message)+'</div>'}return'<div class="chat-msg '+cls+'">'+content+'<div class="chat-msg-time">'+time+'</div></div>'}).join('');el.scrollTop=el.scrollHeight}
+
+function downloadChatFile(fileId){if(!fileId)return;const a=document.createElement('a');a.href='/file/'+fileId.split('/').map(encodeURIComponent).join('/');a.target='_blank';a.download=fileId.split('/').pop();a.click()}
+
+async function sendChatMessage(){const ci=document.getElementById('chatInput');if(!ci||!state.chatFriend)return;const content=ci.value.trim();if(!content)return;ci.value='';ci.style.height='auto';const r=await fetch('/api/chat/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({receiverId:state.chatFriend.userId,message:content,messageType:'text'})});const d=await r.json();if(d.code!==0)showToast(d.message||'发送失败','error');loadChatMessages()}
+
+function showChatShareModal(){if(!state.chatFriend){showToast('请先选择好友','error');return}showModal('<div class="modal-title">分享我网盘里的文件</div><div class="modal-body"><input class="input" id="shareFileSearch" placeholder="搜索文件..."><div id="shareFileList" style="max-height:320px;overflow-y:auto;margin-top:10px"></div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">关闭</button></div>');document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());const inp=document.getElementById('shareFileSearch');let t;inp.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>renderShareFileList(inp.value.trim()),250)});renderShareFileList('')}
+
+async function renderShareFileList(q){const el=document.getElementById('shareFileList');if(!el)return;el.innerHTML='<div class="loading"><div class="spinner"></div></div>';const r=await fetch('/api/manage/list?start=0&count=100&search='+encodeURIComponent(q||''));const d=await r.json();const files=(d.code===0&&d.data&&d.data.files)||[];if(files.length===0){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">没有文件</div>';return}el.innerHTML=files.map(f=>{const icon=getFileIcon(f);return'<div class="share-friend-item" onclick="shareFileToChat(\''+escHtml(f.id)+'\',\''+escHtml(fileNameOf(f).replace(/'/g,"\\'"))+'\')"><div class="file-icon" style="width:32px;height:32px;font-size:14px;background:'+icon.bg+'">'+icon.emoji+'</div><div style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(fileNameOf(f))+'</div><div style="font-size:11px;color:var(--text3)">'+formatSize(f.fileSize)+'</div></div>'}).join('')}
+
+async function shareFileToChat(fileId,fileName){const sr=await fetch('/api/file/shares',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileId,shareType:'friend',sharedWith:state.chatFriend.userId,permissions:['read']})});const sd=await sr.json();if(sd.code!==0){showToast(sd.message||'分享失败','error');return}const r=await fetch('/api/chat/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({receiverId:state.chatFriend.userId,message:fileName,fileShareId:sd.data.id,messageType:'file'})});const d=await r.json();if(d.code===0){showToast('已发送文件','success');closeAllModals();loadChatMessages()}else showToast(d.message||'发送失败','error')}
+
+function startChatPoll(){stopChatPoll();chatPollTimerId=setInterval(()=>{if(state.currentView==='chat'&&state.chatFriend){loadChatMessages()}pollUnread()},3000)}
+function stopChatPoll(){if(chatPollTimerId){clearInterval(chatPollTimerId);chatPollTimerId=null}}
+
+async function pollUnread(){const r=await fetch('/api/chat/unread');const d=await r.json();if(d.code!==0)return;const count=(d.data&&d.data.total)||0;state.unread=count;const badge=document.getElementById('chatUnreadBadge');if(badge){badge.textContent=count;badge.style.display=count>0?'flex':'none'}const fb=document.getElementById('friendUnreadBadge');if(fb){fb.textContent=count;fb.style.display=count>0?'flex':'none'}}
+
+/* ============ 组管理 ============ */
+async function loadMyGroups(){const r=await fetch('/api/user/groups');const d=await r.json();const el=document.getElementById('myGroupsList');if(!el)return;if(d.code!==0||!d.data||!d.data.groups||d.data.groups.length===0){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">暂未加入任何组</div>';return}state.myGroups=d.data.groups;renderMyGroupsList(d.data.groups)}
+function renderMyGroupsList(groups){const el=document.getElementById('myGroupsList');if(!el)return;el.innerHTML=groups.map(g=>{const roleLabel=g.myRole==='owner'?'群主':g.myRole==='admin'?'管理员':'';return'<div class="friend-item" onclick="showGroupDetail(\''+escHtml(g.id)+'\')"><div class="friend-avatar">'+(g.avatar?'<img src="'+escHtml(g.avatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--text3)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>')+'</div><div class="friend-info"><div class="friend-name">'+escHtml(g.name)+'</div><div class="friend-status">组号: '+escHtml(g.groupCode||'无')+' · '+roleLabel+' · '+g.members.length+'人</div></div></div>'}).join('')}
+
+function showCreateGroupModal(){showModal('<div class="modal-title">新建组</div><div class="modal-body"><div class="form-group"><label>组头像</label><div style="display:flex;align-items:center;gap:12px"><div id="createGroupAvatarPreview" style="width:64px;height:64px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden" title="点击上传"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:28px;height:28px;color:var(--text3)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><input type="file" id="createGroupAvatarInput" accept="image/*" style="display:none"></div><div style="font-size:11px;color:var(--text3)">可选，点击上传</div></div></div><div class="form-group"><label>组名称 *</label><input class="input" id="createGroupName" placeholder="输入组名"></div><div class="form-group"><label>组号（6位纯数字）</label><div style="display:flex;gap:8px"><input class="input" id="createGroupCode" placeholder="自动生成" maxlength="6"><button class="btn btn-ghost" onclick="document.getElementById(\'createGroupCode\').value=String(Math.floor(100000+Math.random()*900000))" style="white-space:nowrap">刷新</button></div></div><div class="form-group"><label>默认上传权限</label><div style="display:flex;gap:12px"><label class="chk"><input type="radio" name="createGroupUpload" value="on" checked><span></span>所有人可上传</label><label class="chk"><input type="radio" name="createGroupUpload" value="off"><span></span>仅管理员可上传</label></div></div><div class="form-group"><label>邀请好友（可选）</label><div id="createGroupInviteList" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px"></div></div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">取消</button><button class="btn btn-accent modal-confirm">创建</button></div>');document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());document.getElementById('createGroupAvatarInput').addEventListener('change',e=>{const file=e.target.files[0];if(file){const reader=new FileReader();reader.onload=ev=>{document.getElementById('createGroupAvatarPreview').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">'};reader.readAsDataURL(file)}});loadFriendsForInvite();document.querySelector('.modal-confirm').addEventListener('click',createGroup)}
+
+async function loadFriendsForInvite(){const el=document.getElementById('createGroupInviteList');if(!el)return;if(!state.friends||state.friends.length===0){el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:4px">暂无好友</div>';return}el.innerHTML=state.friends.map(f=>'<label class="chk" style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer"><input type="checkbox" value="'+escHtml(f.userId)+'"><span class="cbx-box"></span><div class="friend-avatar" style="width:24px;height:24px">'+avatarHTML(f,24)+'</div><span style="font-size:13px">'+escHtml(f.displayName||f.username)+'</span></label>').join('')}
+
+async function createGroup(){const name=document.getElementById('createGroupName').value.trim();if(!name){showToast('请输入组名','error');return}const code=document.getElementById('createGroupCode').value.trim();const upload=document.querySelector('input[name="createGroupUpload"]:checked').value;const avatarEl=document.getElementById('createGroupAvatarPreview');const avatarImg=avatarEl?avatarEl.querySelector('img'):null;const avatar=avatarImg?avatarImg.src:'';const inviteIds=Array.from(document.querySelectorAll('#createGroupInviteList input[type="checkbox"]:checked')).map(c=>c.value);const r=await fetch('/api/groups/actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,groupCode:code||undefined,avatar,defaultUpload:upload,inviteIds})});const d=await r.json();if(d.code!==0){showToast(d.message||'创建失败','error');return}showToast('组已创建','success');closeAllModals();loadMyGroups();loadGroups()}
+
+function showJoinGroupModal(){showModal('<div class="modal-title">加入组</div><div class="modal-body"><div class="form-group"><label>搜索组号</label><div style="display:flex;gap:8px"><input class="input" id="joinGroupCode" placeholder="输入6位组号" maxlength="6"><button class="btn btn-accent" id="joinGroupSearchBtn" style="white-space:nowrap">搜索</button></div></div><div id="joinGroupResult" style="margin-top:12px"></div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">关闭</button></div>');document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());document.getElementById('joinGroupSearchBtn').addEventListener('click',searchGroupToJoin);document.getElementById('joinGroupCode').addEventListener('keydown',e=>{if(e.key==='Enter')searchGroupToJoin()})}
+
+async function searchGroupToJoin(){const code=document.getElementById('joinGroupCode').value.trim();if(!code){showToast('请输入组号','error');return}const el=document.getElementById('joinGroupResult');el.innerHTML='<div class="loading"><div class="spinner"></div></div>';const r=await fetch('/api/groups/actions?action=search&code='+encodeURIComponent(code));const d=await r.json();if(d.code!==0||!d.data){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--text3);font-size:13px">'+escHtml(d.message||'未找到该组')+'</div>';return}const g=d.data;el.innerHTML='<div class="friend-request-item" style="border:1px solid var(--border);border-radius:8px;padding:12px"><div class="friend-avatar" style="width:48px;height:48px">'+(g.avatar?'<img src="'+escHtml(g.avatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:var(--text3)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600">'+escHtml(g.name)+'</div><div style="font-size:12px;color:var(--text3)">'+g.memberCount+' 人</div></div>'+(g.joined?'<span class="badge" style="background:var(--surface);color:var(--text2)">已加入</span>':'<button class="btn btn-accent" onclick="joinGroup(\''+escHtml(g.id)+'\')">加入</button>')+'</div>'}
+
+async function joinGroup(groupId){const r=await fetch('/api/groups/actions?action=join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({groupId})});const d=await r.json();showToast(d.code===0?'已加入组':(d.message||'加入失败'),d.code===0?'success':'error');if(d.code===0){closeAllModals();loadMyGroups();loadGroups()}}
+
+async function showGroupDetail(groupId){state.currentView='groupDetail';const toolbar=document.getElementById('toolbar');const batchBar=document.getElementById('batchBar');const fileArea=document.getElementById('fileArea');if(toolbar)toolbar.style.display='none';if(batchBar)batchBar.style.display='none';if(fileArea)fileArea.style.display='none';let fp=document.querySelector('.friends-page');if(!fp){fp=document.createElement('div');fp.className='friends-page';document.querySelector('.content').appendChild(fp)}fp.innerHTML='<div class="loading"><div class="spinner"></div></div>';const r=await fetch('/api/groups/'+groupId);const d=await r.json();if(d.code!==0||!d.data){fp.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3)">'+escHtml(d.message||'加载失败')+'</div>';return}const g=d.data;state.currentGroup=g;const isOwner=g.myRole==='owner';const isAdmin=g.myRole==='admin'||isOwner;fp.innerHTML='<div class="friends-header"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-ghost" onclick="showFriendsPage()" style="padding:4px 8px;font-size:12px">← 返回</button><h2 style="margin:0">'+escHtml(g.name)+'</h2><span class="badge" style="background:var(--surface);color:var(--text2)">'+escHtml(g.groupCode)+'</span></div></div><div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px"><div><div style="font-size:14px;font-weight:600;margin-bottom:12px">组信息</div><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div id="groupDetailAvatar" style="width:64px;height:64px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">'+(g.avatar?'<img src="'+escHtml(g.avatar)+'" style="width:100%;height:100%;object-fit:cover">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:28px;height:28px;color:var(--text3)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>')+(isAdmin?'<input type="file" id="groupAvatarInput" accept="image/*" style="display:none">':'')+'</div><div><div style="font-size:13px;color:var(--text3)">组头像'+(isAdmin?' (点击更换)':'')+'</div><div style="font-size:12px;color:var(--text3)">组号: '+escHtml(g.groupCode)+'</div></div></div>'+(isAdmin?'<div class="form-group"><label>组名</label><div style="display:flex;gap:8px"><input class="input" id="groupNameInput" value="'+escHtml(g.name)+'"><button class="btn btn-accent" onclick="updateGroupName(\''+escHtml(g.id)+'\')" style="white-space:nowrap">保存</button></div></div><div class="form-group"><label>组号（6位纯数字）</label><div style="display:flex;gap:8px"><input class="input" id="groupCodeInput" value="'+escHtml(g.groupCode)+'" maxlength="6"><button class="btn btn-accent" onclick="updateGroupCode(\''+escHtml(g.id)+'\')" style="white-space:nowrap">保存</button></div></div><div class="form-group"><label>默认上传权限</label><div style="display:flex;gap:12px"><label class="chk"><input type="radio" name="groupDefaultUpload" value="on" '+(g.defaultUpload==='on'?'checked':'')+'><span></span>所有人可上传</label><label class="chk"><input type="radio" name="groupDefaultUpload" value="off" '+(g.defaultUpload==='off'?'checked':'')+'><span></span>仅管理员可上传</label></div><button class="btn btn-accent" onclick="updateGroupDefaultUpload(\''+escHtml(g.id)+'\')" style="margin-top:8px;padding:4px 12px;font-size:12px">保存上传设置</button></div>':'')+'<div class="form-group"><label>我的备注</label><div style="display:flex;gap:8px"><input class="input" id="groupMyNote" value="'+escHtml(g.myNote||'')+'" placeholder="给自己备注"><button class="btn btn-ghost" onclick="saveGroupMyNote(\''+escHtml(g.id)+'\')" style="white-space:nowrap">保存</button></div></div><div class="form-group"><label>共享个人文件给组内</label><label class="chk"><input type="checkbox" id="sharePersonalToggle" '+(g.mySharePersonal?'checked':'')+'><span class="cbx-box"></span>开启后组内成员可以看到我的个人文件</label><button class="btn btn-ghost" onclick="toggleSharePersonal(\''+escHtml(g.id)+'\')" style="margin-top:6px;padding:4px 12px;font-size:12px">保存</button></div>'+(g.myRole!=='owner'?'<div style="margin-top:16px"><button class="btn btn-ghost" style="color:var(--danger);border:1px solid var(--danger)" onclick="leaveGroup(\''+escHtml(g.id)+'\')">退出组</button></div>':'')+'</div><div><div style="font-size:14px;font-weight:600;margin-bottom:12px">成员 ('+g.members.length+')</div><div id="groupMembersList">'+renderGroupMembers(g)+'</div></div></div><div style="padding:0 16px 16px"><div style="font-size:14px;font-weight:600;margin-bottom:8px">组内聊天</div><div id="groupChatPanel" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;height:300px;display:flex;flex-direction:column"><div id="groupChatMessages" style="flex:1;overflow-y:auto;padding:8px"></div><div style="display:flex;gap:8px;padding:8px;border-top:1px solid var(--border)"><button class="chat-share-btn" title="分享网盘文件" onclick="showGroupShareFileModal(\''+escHtml(g.id)+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button><input class="input" id="groupChatInput" placeholder="输入消息..." style="flex:1" onkeydown="if(event.key===\'Enter\')sendGroupChatMsg(\''+escHtml(g.id)+'\')"><button class="btn btn-accent" onclick="sendGroupChatMsg(\''+escHtml(g.id)+'\')">发送</button></div></div></div>';if(isAdmin){document.getElementById('groupAvatarInput').addEventListener('change',e=>{const file=e.target.files[0];if(file){const reader=new FileReader();reader.onload=ev=>{document.getElementById('groupDetailAvatar').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';updateGroupAvatar(groupId,ev.target.result)};reader.readAsDataURL(file)}});document.getElementById('groupDetailAvatar').addEventListener('click',()=>{if(isAdmin)document.getElementById('groupAvatarInput').click()})}loadGroupChatMessages(groupId);updateGroupOnlineStatus(groupId,'online')}
+
+function renderGroupMembers(g){return g.members.map(m=>{const roleLabel=m.role==='owner'?'群主':m.role==='admin'?'管理员':'';const online=m.onlineStatus==='online'?'??':'?';return'<div class="friend-request-item" style="padding:8px;border-bottom:1px solid var(--border)"><div class="friend-avatar" style="width:36px;height:36px">'+avatarHTML(m,36)+'</div><div style="flex:1"><div style="font-size:13px;display:flex;align-items:center;gap:6px">'+escHtml(m.displayName||m.username)+' <span style="font-size:10px">'+online+'</span>'+(roleLabel?'<span class="badge" style="background:var(--surface);color:var(--text2);font-size:10px;padding:1px 6px">'+roleLabel+'</span>':'')+'</div>'+(m.note?'<div style="font-size:11px;color:var(--text3)">备注: '+escHtml(m.note)+'</div>':'')+'</div>'+(g.myRole==='owner'&&m.role!=='owner'?'<div style="display:flex;gap:4px"><select class="input" style="width:auto;padding:2px 6px;font-size:11px" onchange="setMemberRole(\''+escHtml(g.id)+'\',\''+escHtml(m.id)+'\',this.value)"><option value="member"'+(m.role==='member'?' selected':'')+'>成员</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>管理员</option></select><button class="btn btn-ghost" style="padding:2px 6px;font-size:11px;color:var(--danger)" onclick="removeMember(\''+escHtml(g.id)+'\',\''+escHtml(m.id)+'\')">移除</button></div>':'')+'</div>'}).join('')}
+
+async function updateGroupName(groupId){const name=document.getElementById('groupNameInput').value.trim();if(!name){showToast('请输入组名','error');return}const r=await fetch('/api/groups/'+groupId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});const d=await r.json();showToast(d.code===0?'已更新':(d.message||'失败'),d.code===0?'success':'error');if(d.code===0){loadMyGroups();loadGroups()}}
+
+async function updateGroupCode(groupId){const code=document.getElementById('groupCodeInput').value.trim();if(!/^\d{6}$/.test(code)){showToast('组号必须为6位纯数字','error');return}const r=await fetch('/api/groups/'+groupId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({groupCode:code})});const d=await r.json();showToast(d.code===0?'已更新':(d.message||'失败'),d.code===0?'success':'error')}
+
+async function updateGroupDefaultUpload(groupId){const upload=document.querySelector('input[name="groupDefaultUpload"]:checked').value;const r=await fetch('/api/groups/'+groupId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({defaultUpload:upload})});const d=await r.json();showToast(d.code===0?'已更新':(d.message||'失败'),d.code===0?'success':'error')}
+
+async function updateGroupAvatar(groupId,avatarUrl){const r=await fetch('/api/groups/'+groupId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({avatar:avatarUrl})});const d=await r.json();if(d.code===0){loadMyGroups();loadGroups()}}
+
+async function saveGroupMyNote(groupId){const note=document.getElementById('groupMyNote').value.trim();const r=await fetch('/api/groups/'+groupId+'/my-note',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({note})});const d=await r.json();showToast(d.code===0?'已保存':(d.message||'失败'),d.code===0?'success':'error')}
+
+async function toggleSharePersonal(groupId){const share=document.getElementById('sharePersonalToggle').checked;const r=await fetch('/api/groups/'+groupId+'/share-personal',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({share})});const d=await r.json();showToast(d.code===0?(share?'已开启共享':'已关闭共享'):(d.message||'失败'),d.code===0?'success':'error')}
+
+async function leaveGroup(groupId){if(!confirm('确定要退出该组吗？'))return;const r=await fetch('/api/groups/'+groupId+'/leave',{method:'DELETE'});const d=await r.json();showToast(d.code===0?'已退出':(d.message||'失败'),d.code===0?'success':'error');if(d.code===0){showFriendsPage();loadMyGroups();loadGroups()}}
+
+async function setMemberRole(groupId,uid,role){const r=await fetch('/api/groups/'+groupId+'/members/'+uid+'/role',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});const d=await r.json();showToast(d.code===0?'已设置':(d.message||'失败'),d.code===0?'success':'error');if(d.code===0)showGroupDetail(groupId)}
+
+async function removeMember(groupId,uid){if(!confirm('确定移除该成员吗？'))return;const r=await fetch('/api/groups/'+groupId+'/members/'+uid,{method:'DELETE'});const d=await r.json();showToast(d.code===0?'已移除':(d.message||'失败'),d.code===0?'success':'error');if(d.code===0)showGroupDetail(groupId)}
+
+async function loadGroupChatMessages(groupId){const r=await fetch('/api/groups/'+groupId+'/chat');const d=await r.json();if(d.code!==0)return;const el=document.getElementById('groupChatMessages');if(!el)return;const msgs=(d.data&&d.data.messages)||[];if(msgs.length===0){el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px">暂无消息</div>';return}el.innerHTML=msgs.map(m=>{const isSelf=m.senderId===currentUserProfile.id;const cls=isSelf?'self':'other';const time=m.createdAt?new Date(m.createdAt.replace(' ','T')+'Z').toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';let content='';if(m.messageType==='file'){content='<div class="chat-msg-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="chat-msg-file-name">'+escHtml(m.message||'文件')+'</span></div>'}else{content='<div class="chat-msg-bubble">'+escHtml(m.message)+'</div>'}return'<div class="chat-msg '+cls+'">'+(isSelf?'':('<div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+escHtml(m.displayName||m.username)+'</div>'))+content+'<div class="chat-msg-time">'+time+'</div></div>'}).join('');el.scrollTop=el.scrollHeight}
+
+async function sendGroupChatMsg(groupId){const inp=document.getElementById('groupChatInput');if(!inp)return;const content=inp.value.trim();if(!content)return;inp.value='';await fetch('/api/groups/'+groupId+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:content,messageType:'text'})});loadGroupChatMessages(groupId)}
+
+async function updateGroupOnlineStatus(groupId,status){await fetch('/api/groups/'+groupId+'/online',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})}
+
+function showGroupShareFileModal(groupId){showModal('<div class="modal-title">分享网盘文件到组</div><div class="modal-body"><input class="input" id="groupShareFileSearch" placeholder="搜索文件..."><div id="groupShareFileList" style="max-height:320px;overflow-y:auto;margin-top:10px"></div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">关闭</button></div>');document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());const inp=document.getElementById('groupShareFileSearch');let t;inp.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>renderGroupShareFileList(inp.value.trim(),groupId),250)});renderGroupShareFileList('',groupId)}
+
+async function renderGroupShareFileList(q,groupId){const el=document.getElementById('groupShareFileList');if(!el)return;el.innerHTML='<div class="loading"><div class="spinner"></div></div>';const r=await fetch('/api/manage/list?start=0&count=100&search='+encodeURIComponent(q||''));const d=await r.json();const files=(d.code===0&&d.data&&d.data.files)||[];if(files.length===0){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">没有文件</div>';return}el.innerHTML=files.map(f=>{const icon=getFileIcon(f);return'<div class="share-friend-item" onclick="shareFileToGroup(\''+escHtml(groupId)+'\',\''+escHtml(f.id)+'\',\''+escHtml(fileNameOf(f).replace(/'/g,"\\'"))+'\')"><div class="file-icon" style="width:32px;height:32px;font-size:14px;background:'+icon.bg+'">'+icon.emoji+'</div><div style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(fileNameOf(f))+'</div><div style="font-size:11px;color:var(--text3)">'+formatSize(f.fileSize)+'</div></div>'}).join('')}
+
+async function shareFileToGroup(groupId,fileId,fileName){const r=await fetch('/api/groups/'+groupId+'/chat/share-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileId})});const d=await r.json();if(d.code===0){showToast('已分享文件','success');closeAllModals();loadGroupChatMessages(groupId)}else showToast(d.message||'分享失败','error')}
+
+/* ============ 用户中心 ============ */
+function showUserCenter(){const u=currentUserProfile;showModal('<div class="modal-title">用户中心</div><div class="modal-body" style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;cursor:pointer;overflow:hidden" id="avatarContainer" title="点击更换头像">'+avatarHTML(u,64)+'<input type="file" id="avatarInput" accept="image/*" style="display:none"></div><div style="font-size:11px;color:var(--text3);margin-bottom:16px">点击头像可更换（支持裁剪）</div><div class="form-group"><label>用户名（即登录名，可修改）</label><input class="input" id="ucUsername" value="'+escHtml(u.username||'')+'"></div><div style="font-size:11px;color:var(--text3);text-align:left;line-height:1.6">普通用户凭用户名即可登录，请把用户名设成别人不易猜到的内容。<br>当前角色：'+escHtml(u.role==='admin'?'管理员':'普通用户')+'</div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">取消</button><button class="btn btn-accent modal-confirm">保存</button></div>');document.getElementById('avatarContainer').addEventListener('click',()=>document.getElementById('avatarInput').click());document.getElementById('avatarInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)openAvatarCropper(file)});document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());document.querySelector('.modal-confirm').addEventListener('click',async()=>{const un=document.getElementById('ucUsername').value.trim();if(un.length<2||un.length>32){showToast('用户名长度需在 2-32 之间','error');return}const r=await fetch('/api/user/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un})});const d=await r.json();if(d.code===0){currentUserProfile.username=un;showToast('保存成功，下次请用新用户名登录','success');closeAllModals()}else showToast(d.message||'保存失败','error')})}
+
+// 头像上传：裁剪结果先存到网盘，再把真实 URL 写进用户资料
+async function uploadAvatarBlob(blob){
+  let ch=uploadChannelKey(), chName=uploadChannelName();
+  if(ch==='auto'){const p=autoPickChannel(blob.size);ch=p?(p.key||p.channel):ch;chName=p?(p.channelInstance||p.name||''):''}
+  const fd=new FormData();fd.append('file',blob,'avatar.png');
+  const r=await fetch('/upload/?uploadChannel='+ch+(chName?'&channelName='+encodeURIComponent(chName):'')+'&returnFormat=full',{method:'POST',body:fd});
+  if(!r.ok)throw new Error(await r.text());
+  const arr=await r.json();const item=Array.isArray(arr)?arr[0]:arr;return item.publicUrl||item.src}
+
+async function saveAvatar(url){const r=await fetch('/api/user/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({avatar:url})});const d=await r.json();if(d.code!==0)throw new Error(d.message||'保存失败');currentUserProfile.avatar=url;updateUserAvatar()}
+
+/* ===== 头像裁剪器（预览与输出严格一致）=====
+   坐标约定：ox / oy / scale 全部工作在「视图 CSS 像素」空间里，1 单位 = 1 显示像素。
+   · 预览：画布按 devicePixelRatio 放大，再用 setTransform 把坐标空间还原成 CSS 像素 →
+     画布上的 1 单位永远等于屏幕上的 1px，不受元素尺寸 / 缩放影响。
+   · 输出：把同一套变换按 OUT/V 整体等比放大，再用内切圆裁剪。
+   两者只差一个等比系数，所以「预览里看到的圆形区域」与「实际上传的图片」必然一致。 */
+/* ===== 头像裁剪器 =====
+   设计：整张图片按原始比例**完整展示**（不裁掉任何边缘），用户在图片上拖动圆形裁剪框取景。
+   · 唯一事实来源是「图像坐标」：crop = { x, y, d }，单位都是原图像素。
+   · 舞台（stage）的宽高比 == 图片宽高比 → 框外的灰色区域就是图片本身的形状，不是被强行拉成 1:1。
+   · 输出时直接把 crop（图像坐标下的正方形包围盒）画进 512×512 再做内切圆裁剪 ——
+     所见即所得，而且是从原图取区域，清晰度不受显示缩放影响。 */
+async function avatarCropperCore(file,onConfirm){
+  const OUT=512;
+  const overlay=document.createElement('div');
+  overlay.className='avatar-cropper-overlay';
+  overlay.innerHTML='<div class="avatar-cropper"><div class="avatar-cropper-title">裁剪头像</div>'
+    +'<div class="cropper-stage" id="cropStage"><img id="cropImg" alt=""><div class="cropper-frame" id="cropFrame"></div></div>'
+    +'<div class="avatar-cropper-hint">拖动圆形框选择范围 · 拖滑块调整框大小</div>'
+    +'<div class="avatar-cropper-slider"><input type="range" id="cropperZoom" min="0" max="1" step="0.001" value="1"></div>'
+    +'<div class="avatar-cropper-actions"><button class="btn btn-ghost" id="cropperCancel">取消</button><button class="btn btn-accent" id="cropperConfirm">确认</button></div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+
+  const box=overlay.querySelector('.avatar-cropper');
+  const stage=document.getElementById('cropStage');
+  const frame=document.getElementById('cropFrame');
+  const el=document.getElementById('cropImg');
+  const zoom=document.getElementById('cropperZoom');
+
+  let imgW=0,imgH=0,scale=1,minD=0,maxD=0;
+  const crop={x:0,y:0,d:0};
+
+  const clampD=()=>{crop.d=Math.max(minD,Math.min(maxD,crop.d))};
+  const clampXY=()=>{
+    crop.x=Math.max(0,Math.min(imgW-crop.d,crop.x));
+    crop.y=Math.max(0,Math.min(imgH-crop.d,crop.y))};
+  const draw=()=>{
+    if(!crop.d)return;
+    frame.style.left=(crop.x*scale)+'px';
+    frame.style.top=(crop.y*scale)+'px';
+    frame.style.width=(crop.d*scale)+'px';
+    frame.style.height=(crop.d*scale)+'px'};
+
+  const layout=()=>{
+    if(!imgW)return;
+    const cs=window.getComputedStyle(box);
+    const availW=Math.max(160,(box.clientWidth||380)-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0));
+    const availH=Math.max(160,Math.min(380,Math.round(window.innerHeight*0.52)));
+    // 不取整：舞台宽高比必须与图片严格一致，否则图片会被压扁一点、
+    // 而且 scale 在 x/y 两个方向不一致，裁剪坐标就会有偏差
+    let sw=availW, sh=availW*imgH/imgW;
+    if(sh>availH){sh=availH;sw=availH*imgW/imgH}
+    stage.style.width=sw+'px';
+    stage.style.height=sh+'px';
+    scale=sw/imgW;                       // 舞台 px / 图像 px
+    maxD=Math.min(imgW,imgH);            // 能完整塞进图里的最大圆
+    minD=Math.max(16,maxD*0.16);
+    if(crop.d>0){clampD();clampXY();draw()}
+  };
+
+  el.onload=()=>{
+    imgW=el.naturalWidth;imgH=el.naturalHeight;
+    crop.d=0;crop.x=0;crop.y=0;
+    layout();                            // 先算出 maxD / scale
+    crop.d=maxD;crop.x=(imgW-crop.d)/2;crop.y=(imgH-crop.d)/2;   // 默认取最大圆并居中
+    clampD();clampXY();draw();
+    zoom.value='1';
+  };
+  el.onerror=()=>showToast('图片读取失败，换一张试试','error');
+  el.src=URL.createObjectURL(file);
+
+  /* ---- 拖动圆形框（只在框内按下才生效，框外点击留给「点背景关闭」）---- */
+  let dragging=false,lx=0,ly=0;
+  const startDrag=(x,y)=>{dragging=true;lx=x;ly=y;frame.classList.add('dragging')};
+  const moveDrag=(x,y)=>{
+    if(!dragging)return;
+    crop.x+=(x-lx)/scale;crop.y+=(y-ly)/scale;
+    lx=x;ly=y;clampXY();draw()};
+  const endDrag=()=>{dragging=false;frame.classList.remove('dragging')};
+
+  overlay.addEventListener('mousedown',e=>{
+    if(!e.target.closest('#cropFrame'))return;
+    e.preventDefault();startDrag(e.clientX,e.clientY)});
+  overlay.addEventListener('mousemove',e=>moveDrag(e.clientX,e.clientY));
+  overlay.addEventListener('mouseup',endDrag);
+  overlay.addEventListener('mouseleave',endDrag);
+  overlay.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1||!e.target.closest('#cropFrame'))return;
+    e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  overlay.addEventListener('touchmove',e=>{
+    if(e.touches.length!==1)return;
+    e.preventDefault();moveDrag(e.touches[0].clientX,e.touches[0].clientY)},{passive:false});
+  overlay.addEventListener('touchend',endDrag);
+
+  /* ---- 滑块改圆形框大小（以框心为锚点）---- */
+  zoom.addEventListener('input',()=>{
+    if(!imgW)return;
+    const t=parseFloat(zoom.value)||0;
+    const nd=minD+(maxD-minD)*t;
+    const cx=crop.x+crop.d/2,cy=crop.y+crop.d/2;
+    crop.d=nd;crop.x=cx-nd/2;crop.y=cy-nd/2;
+    clampD();clampXY();draw()});
+
+  const relayout=()=>layout();
+  window.addEventListener('resize',relayout);
+  const cleanup=()=>window.removeEventListener('resize',relayout);
+
+  document.getElementById('cropperCancel').addEventListener('click',()=>{cleanup();overlay.remove()});
+  document.getElementById('cropperConfirm').addEventListener('click',()=>{
+    if(!imgW||!crop.d)return;
+    const btn=document.getElementById('cropperConfirm');
+    btn.disabled=true;btn.textContent='上传中...';
+    const out=document.createElement('canvas');out.width=OUT;out.height=OUT;
+    const octx=out.getContext('2d');
+    octx.beginPath();octx.arc(OUT/2,OUT/2,OUT/2,0,Math.PI*2);octx.clip();
+    // crop 就是图像坐标下的正方形包围盒，直接取这一块 → 与框内所见完全一致
+    const sd=Math.max(1,Math.round(crop.d));
+    octx.drawImage(el,Math.round(crop.x),Math.round(crop.y),sd,sd,0,0,OUT,OUT);
+    out.toBlob(async blob=>{
+      if(!blob){showToast('生成图片失败','error');btn.disabled=false;btn.textContent='确认';return}
+      try{await onConfirm(blob);cleanup();overlay.remove()}
+      catch(err){showToast('头像上传失败：'+((err&&err.message)||''),'error');btn.disabled=false;btn.textContent='确认'}
+    },'image/png')});
+}
+
+// 网盘页：裁好直接上传并把 URL 写进用户资料
+function openAvatarCropper(file){
+  avatarCropperCore(file,async blob=>{
+    const url=await uploadAvatarBlob(blob);
+    await saveAvatar(url);
+    showToast('头像已更新','success');
+    closeAllModals();
+  })
+}
+
+
+/* ============ 存储 / 通道 / 组 / 日志 ============ */
+async function loadQuota(){const r=await fetch('/api/manage/quota');const d=await r.json();if(d.code===0&&d.data)state.quota=d.data;const cr=await fetch('/api/channels');const cd=await cr.json();if(cd.code===0&&cd.data){state.channels=cd.data;renderChannels(cd.data);renderChannelSelectors()}updateStorageBar()}
+
+// 顶栏三段条当前展示的范围：选了具体渠道就看该渠道，自动通道看合计
+function currentScope(){const q=state.quota||{};const auto={label:'全部通道',used:q.used||0,selfUsed:q.selfUsed||0,othersUsed:q.othersUsed||0,total:q.total||0,available:q.available,unlimited:!!q.unlimited};if(state.uploadChannel==='auto'||!(state.channels||[]).length)return auto;const ch=(state.channels||[]).find(c=>c.key===state.uploadChannel);if(!ch)return auto;return{label:ch.displayName,used:ch.usedBytes||0,selfUsed:(ch.quota&&ch.quota.selfUsed)||0,othersUsed:(ch.quota&&ch.quota.othersUsed)||0,total:(ch.quota&&ch.quota.total)||0,available:ch.quota?ch.quota.available:null,unlimited:!!ch.unlimited}}
+
+function updateStorageBar(){const oE=document.getElementById('storageOthers');const sE=document.getElementById('storageSelf');const t=document.getElementById('storageText');if(!oE||!sE||!t)return;const s=currentScope();const denom=s.unlimited?Math.max(1,s.used):(s.total||0);if(denom<=0){oE.style.width='0%';sE.style.width='0%';t.textContent='0 B';return}const othersPct=Math.min(100,(s.othersUsed/denom)*100);const selfPct=Math.min(100,(s.selfUsed/denom)*100);oE.style.width=othersPct+'%';sE.style.width=selfPct+'%';t.textContent=formatSize(s.used)+(s.unlimited?' / 不限额':' / '+formatSize(s.total));t.title='当前统计范围：'+s.label;const lg=document.getElementById('storageLegend');if(lg){lg.innerHTML='<span><i style="background:#6B7280"></i>其他用户 '+formatSize(s.othersUsed)+'</span><span><i style="background:var(--accent)"></i>我自己 '+formatSize(s.selfUsed)+'</span><span><i style="background:var(--surface);border:1px solid var(--border)"></i>'+(s.unlimited?'不限额':'可用 '+formatSize(s.available||0))+'</span><span style="opacity:.65">统计范围：'+escHtml(s.label)+'</span>'}}
+
+function renderChannels(arr){const c=document.getElementById('channelsContainer');if(!c)return;c.innerHTML=arr.map(ch=>{const used=ch.usedBytes||0;const total=(ch.quota&&ch.quota.total)||0;const unlimited=!!ch.unlimited||total===0;const pct=unlimited?0:(total>0?Math.min(100,(used/total)*100):0);const color=pct>90?'var(--red)':pct>70?'var(--orange)':'var(--green)';const cap=unlimited?'无限容量':formatSize(total);const fill=unlimited?'background:repeating-linear-gradient(90deg,rgba(138,130,184,.5) 0 3px,transparent 3px 7px)':'background:'+color;return'<div class="sidebar-channel"><span class="ch-ico">'+channelIconHTML(ch.key||ch.channel,14)+'</span><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:500;color:var(--text)">'+escHtml(ch.displayName||ch.name)+'</span><span style="font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap">'+cap+'</span></div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div class="channel-bar"><div class="channel-fill" style="width:'+(unlimited?100:pct)+'%;'+fill+'"></div></div><span style="font-size:10px;color:var(--text3);white-space:nowrap">'+formatSize(used)+'</span></div></div></div>'}).join('');
+  // 通道下拉（顶栏 + 侧栏）跟随实际启用的通道；选项变化由 MutationObserver 自动同步到自定义下拉
+  if(!arr.length)return;
+  const fullOpts='<option value="auto">自动通道（全部）</option>'+arr.map(ch=>'<option value="'+String(ch.key||'').replace(/[^\w-]/g,'')+'">'+escHtml(ch.displayName||ch.name||ch.key)+'</option>').join('');
+  const shortOpts='<option value="auto">自动（按剩余空间）</option>'+arr.map(ch=>'<option value="'+String(ch.key||'').replace(/[^\w-]/g,'')+'">'+escHtml(ch.displayName||ch.name||ch.key)+'</option>').join('');
+  if(state.uploadChannel!=='auto'&&!arr.some(ch=>ch.key===state.uploadChannel))state.uploadChannel='auto';
+  const a=document.getElementById('uploadChannelSelect');
+  const b=document.getElementById('uploadChannelSide');
+  if(a)a.innerHTML=fullOpts;
+  if(b)b.innerHTML=shortOpts;
+  if(a)a.value=state.uploadChannel;
+  if(b)b.value=state.uploadChannel;
+  updateStorageBar();
+}
+
+async function loadChannels(){const r=await fetch('/api/channels');const d=await r.json();if(d.code===0&&d.data){renderChannels(d.data);state.maxUploadMB=d.maxSize||0}}
+
+async function loadGroups(){const r=await fetch('/api/user/groups');const d=await r.json();if(d.code!==0)return;const groups=(d.data&&d.data.groups)||[];state.groups=groups;const c=document.getElementById('groupsContainer');if(!c)return;const titleEl=document.getElementById('activityTitle');if(titleEl)titleEl.textContent=groups.length>0?'组内动态':'个人动态';if(groups.length===0){c.innerHTML='<div style="padding:4px 12px;font-size:11px;color:var(--text3)">未加入任何组</div>';const gsf=document.getElementById('groupSharedFolders');if(gsf)gsf.innerHTML='';return}c.innerHTML=groups.map(g=>'<div class="sidebar-group" onclick="showGroupDetail(\''+escHtml(g.id)+'\')" style="cursor:pointer"><div class="sidebar-group-name">'+escHtml(g.name)+'<span style="float:right;font-size:11px;font-weight:400;color:var(--text3)">'+g.members.length+' 人</span></div><div class="sidebar-group-members">'+g.members.map(m=>'<div class="sidebar-group-member" title="'+escHtml(m.displayName)+'">'+avatarHTML(m,28)+'</div>').join('')+'</div></div>').join('');const gsf=document.getElementById('groupSharedFolders');if(gsf){gsf.innerHTML=groups.map(g=>'<div class="sidebar-nav-item tree-row tree-sub" data-group-id="'+escHtml(g.id)+'" onclick="openGroupSharedFolder(\''+escHtml(g.id)+'\',\''+escHtml(g.name)+'\')"><span class="tree-chev empty"></span><div style="width:18px;height:18px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">'+(g.avatar?'<img src="'+escHtml(g.avatar)+'" style="width:100%;height:100%;object-fit:cover">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;color:var(--text3)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>')+'</div><span class="tree-label">'+escHtml(g.name)+'的共享文件夹</span></div>').join('')}}
+
+async function loadActivityLogs(){const r=await fetch('/api/activity/logs');const d=await r.json();if(d.code!==0)return;const logs=(d.data&&d.data.logs)||[];state.activityLogs=logs.slice(0,12);const c=document.getElementById('activityLog');if(!c)return;if(state.activityLogs.length===0){c.innerHTML='<div style="font-size:11px;color:var(--text3);padding:4px 0">暂无活动记录</div>';return}const map={upload:'上传了',delete:'删除了',rename:'重命名了',share:'分享了',login:'登录了',download:'下载了',folder:'操作了文件夹',move:'移动了'};c.innerHTML=state.activityLogs.map(l=>{const user=escHtml(l.displayName||l.username||'?');const act=map[l.action]||(l.action+'了');const file=escHtml(l.fileName||l.fileId||'');const time=l.createdAt?new Date(l.createdAt.replace(' ','T')+'Z').toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';return'<div class="activity-log-item" title="'+escHtml(l.details||'')+'"><span class="act-user">'+user+'</span><span class="act-file">'+act+' '+file+'</span><span class="act-time">'+time+'</span></div>'}).join('')}
+
+/* ============ 文件列表 ============ */
+let searchTimer;function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.search=document.getElementById('searchInput').value;state.start=0;state.files=[];state.hasMore=true;loadFiles()},300)}
+
+function openGroupSharedFolder(groupId,groupName){state.nav='group';state.currentDir='';state.currentGroupId=groupId;state.currentGroupName=groupName;state.start=0;state.search='';const si=document.getElementById('searchInput');if(si)si.value='';showFilesView();loadFiles()}
+
+function setupScroll(){const a=document.getElementById('fileArea');if(a)a.addEventListener('scroll',()=>{if(state.loading||!state.hasMore)return;if(a.scrollTop+a.clientHeight>=a.scrollHeight-100){loadFiles(false)}})}
+
+async function loadFiles(reset=true){if(state.loading&&!reset)return;state.loading=true;if(reset){state.start=0;state.files=[];state.hasMore=true;state.selected.clear();updateBatchBar()}const sv=document.getElementById('sortSelect').value;const[sort,order]=sv.split('-');const navFilter=state.nav==='images'?'image':state.nav==='videos'?'video':state.nav==='docs'?'doc':'';
+  const dir=(state.nav==='all'||state.nav==='group')?state.currentDir:'';
+  const p=new URLSearchParams({start:state.start,count:state.count,dir,search:state.search,sort,order});
+  if(navFilter)p.set('type',navFilter);
+  if(navFilter||state.nav==='recent')p.set('recursive','true');
+  if(state.nav==='group'&&state.currentGroupId)p.set('groupId',state.currentGroupId);
+  showLoading(true);
+  const r=await fetch('/api/manage/list?'+p);const d=await r.json();
+  if(d.code===0&&d.data){const files=d.data.files||[];if(reset)state.files=files;else state.files=state.files.concat(files);state.hasMore=files.length>=state.count;state.start+=files.length;state.totalCount=reset?(d.data.directFileCount||files.length):state.totalCount}
+  else{showToast(d.message||'加载文件失败','error')}
+  renderFiles();state.loading=false;showLoading(false)}
+
+function showLoading(show){const el=document.getElementById('loadingIndicator');if(el)el.style.display=show&&state.files.length===0?'flex':'none'}
+
+function renderFiles(){const a=document.getElementById('fileArea');if(!a)return;applySelectMode();
+  const fc=document.getElementById('fileCount');
+  const dirCount=(state.nav==='all'||state.nav==='group')?childFoldersOf(state.currentDir).length:0;
+  const prefix=state.nav==='group'?'<span style="color:var(--accent);font-weight:600">'+escHtml(state.currentGroupName||'')+'的共享文件夹 — </span>':'';
+  if(fc)fc.textContent=prefix+'共 '+(state.totalCount||state.files.length)+' 个文件'+(dirCount?' · '+dirCount+' 个文件夹':'');
+  if(state.files.length===0&&dirCount===0){
+    const inFolder=state.nav==='all'&&!!state.currentDir;
+    a.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><p>'+(inFolder?'这个文件夹是空的':'还没有文件')+'</p><div style="display:flex;gap:8px;justify-content:center">'+(inFolder?'<button class="btn btn-ghost" id="emptyBackBtn">返回上级</button>':'')+'<button class="btn btn-accent" id="emptyUploadBtn">上传文件</button></div></div>';
+    const ub=document.getElementById('emptyUploadBtn');if(ub)ub.addEventListener('click',triggerUpload);
+    const bb=document.getElementById('emptyBackBtn');if(bb)bb.addEventListener('click',()=>enterFolder(parentOf(state.currentDir)));
+    renderCrumb();return}
+  if(state.view==='grid')renderGrid(a);else renderList(a);
+  bindFolderRows();renderCrumb()}
+
+function actionButtons(fid,withRename){return'<div class="file-actions"><button class="file-action" data-action="download" data-fid="'+escHtml(fid)+'" title="下载"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button><button class="file-action" data-action="move" data-fid="'+escHtml(fid)+'" title="移动到文件夹"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="12 17 12 11"/><polyline points="9 13.5 12 10.5 15 13.5"/></svg></button><button class="file-action" data-action="share" data-fid="'+escHtml(fid)+'" title="分享"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button><button class="file-action" data-action="transfer" data-fid="'+escHtml(fid)+'" title="转移到其他通道"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button><button class="file-action" data-action="records" data-fid="'+escHtml(fid)+'" title="分享记录"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>'+(withRename?'<button class="file-action" data-action="rename" data-fid="'+escHtml(fid)+'" title="重命名"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>':'')+'<button class="file-action del" data-action="delete" data-fid="'+escHtml(fid)+'" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>'}
+
+function renderList(area){let html='<table class="file-table"><thead><tr><th class="cb-cell"><label class="cbx" title="全选"><input type="checkbox" id="selectAllCb"><span class="cbx-box"></span></label></th><th>文件名</th><th>大小</th><th class="col-date">上传时间</th><th class="col-owner">所有者</th><th class="col-channel">通道</th><th style="width:170px">操作</th></tr></thead><tbody>'+folderRowsHTML();
+for(const f of state.files){const icon=getFileIcon(f);const ch=state.selected.has(f.id);const badge=getChannelBadge(f.channel);const date=f.uploadTime?new Date(f.uploadTime).toLocaleString('zh-CN'):'--';const fname=escHtml(fileNameOf(f));const fsize=formatSize(f.fileSize);
+html+='<tr data-id="'+escHtml(f.id)+'"'+(ch?' class="is-picked"':'')+'><td class="cb-cell"><label class="cbx"><input type="checkbox" '+(ch?'checked':'')+' data-fid="'+escHtml(f.id)+'"><span class="cbx-box"></span></label></td><td><div class="file-name" data-action="preview" data-fid="'+escHtml(f.id)+'"><div class="file-icon" style="background:'+icon.bg+'">'+icon.emoji+'</div><span class="file-name-text">'+fname+'</span></div><div class="file-meta-m">'+fsize+' · '+badge+'</div></td><td class="file-size">'+fsize+'</td><td class="file-date col-date">'+date+'</td><td class="file-owner col-owner">'+escHtml(f.ownerName||'—')+'</td><td class="file-channel col-channel">'+badge+'</td><td>'+actionButtons(f.id,true)+'</td></tr>'}
+html+='</tbody></table>';area.innerHTML=html;
+const selectAllCb=area.querySelector('#selectAllCb');if(selectAllCb){selectAllCb.checked=state.selected.size===state.files.length&&state.files.length>0;selectAllCb.addEventListener('change',selectAllToggle)}
+area.querySelectorAll('input[type=checkbox][data-fid]').forEach(cb=>{cb.addEventListener('change',()=>toggleSelect(cb.dataset.fid))});
+area.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();handleFileAction(btn.dataset.action,btn.dataset.fid)})});
+area.querySelectorAll('.file-name[data-fid]').forEach(el=>{el.addEventListener('click',e=>{e.stopPropagation();const fid=el.dataset.fid;if(state.selectMode){toggleSelect(fid);return}const f=state.files.find(x=>x.id===fid);if(f)previewFile(f)})});
+area.querySelectorAll('tr[data-id]').forEach(tr=>{tr.addEventListener('contextmenu',e=>showContextMenu(e,tr.dataset.id));tr.addEventListener('click',e=>{if(!state.selectMode)return;if(e.target.closest('.cbx')||e.target.closest('.file-action'))return;toggleSelect(tr.dataset.id)})})}
+
+function renderGrid(area){let html='<div class="file-grid">'+folderCardsHTML();for(const f of state.files){const icon=getFileIcon(f);const ch=state.selected.has(f.id);html+='<div class="file-grid-item'+(ch?' is-picked':'')+'" data-fid="'+escHtml(f.id)+'"><label class="cbx grid-cbx"><input type="checkbox" '+(ch?'checked':'')+' data-fid="'+escHtml(f.id)+'"><span class="cbx-box"></span></label><div class="file-icon" style="background:'+icon.bg+'">'+icon.emoji+'</div><div class="file-name-text">'+escHtml(fileNameOf(f))+'</div>'+actionButtons(f.id,false)+'</div>'}html+='</div>';area.innerHTML=html;area.querySelectorAll('.file-grid-item').forEach(item=>{item.addEventListener('click',e=>{if(e.target.closest('.file-action')||e.target.closest('.cbx'))return;const fid=item.dataset.fid;if(state.selectMode){toggleSelect(fid);return}const f=state.files.find(x=>x.id===fid);if(f)previewFile(f)});item.addEventListener('contextmenu',e=>showContextMenu(e,item.dataset.fid))});area.querySelectorAll('input[type=checkbox][data-fid]').forEach(cb=>{cb.addEventListener('change',()=>toggleSelect(cb.dataset.fid))});area.querySelectorAll('[data-action]').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();handleFileAction(btn.dataset.action,btn.dataset.fid)})})}
+
+function handleFileAction(action,fid){const f=state.files.find(x=>x.id===fid);if(!f)return;if(action==='download')downloadFile(f);else if(action==='preview')previewFile(f);else if(action==='transfer')showTransferModal([f.id]);else if(action==='delete')showDeleteConfirm([f]);else if(action==='rename')showRenameModal(f);else if(action==='share')showShareModal(f);else if(action==='records')showShareRecords(f);else if(action==='move')showMoveModal([f.id])}
+
+function downloadFile(f){const a=document.createElement('a');a.href=f.src||('/file/'+f.id.split('/').map(encodeURIComponent).join('/'));a.download=fileNameOf(f).split('/').pop();a.target='_blank';a.click()}
+
+function toggleSelect(fid){if(state.selected.has(fid))state.selected.delete(fid);else state.selected.add(fid);updateBatchBar();const on=state.selected.has(fid);const cb=document.querySelector('#fileArea input[type=checkbox][data-fid="'+CSS.escape(fid)+'"]');if(cb)cb.checked=on;const tr=document.querySelector('#fileArea tr[data-id="'+CSS.escape(fid)+'"]');if(tr)tr.classList.toggle('is-picked',on);const gi=document.querySelector('#fileArea .file-grid-item[data-fid="'+CSS.escape(fid)+'"]');if(gi)gi.classList.toggle('is-picked',on)}
+function selectAllToggle(){const allSelected=state.selected.size>0&&state.selected.size===state.files.length;if(allSelected)state.selected.clear();else state.files.forEach(f=>state.selected.add(f.id));updateBatchBar();renderFiles()}
+function updateBatchBar(){const bar=document.getElementById('batchBar');const cnt=document.getElementById('batchCount');const mc=document.getElementById('multiCount');const n=state.selected.size;if(mc)mc.textContent=n;if(!bar)return;if(n>0){bar.style.display='flex';cnt.textContent='已选择 '+n+' 个文件'}else{bar.style.display='none'}}
+function clearSelection(){state.selected.clear();updateBatchBar();renderFiles()}
+function toggleMultiSelect(on){state.selectMode=(on===undefined)?!state.selectMode:!!on;if(!state.selectMode)state.selected.clear();applySelectMode();updateBatchBar();renderFiles()}
+function applySelectMode(){const area=document.getElementById('fileArea');if(area)area.classList.toggle('select-mode',state.selectMode);const btn=document.getElementById('multiSelectBtn');if(btn){btn.classList.toggle('active',state.selectMode);btn.title=state.selectMode?'退出多选':'开启多选'}}
+function setView(v){state.view=v;document.getElementById('viewGrid').classList.toggle('active',v==='grid');document.getElementById('viewList').classList.toggle('active',v==='list');renderFiles()}
+
+/* ============ 分享链接（提取码 / 有效期 / 记录） ============ */
+const SHARE_EXPIRES=[{v:'',label:'永久有效'},{v:'1',label:'1 小时'},{v:'24',label:'24 小时'},{v:'72',label:'3 天'},{v:'168',label:'7 天'},{v:'720',label:'30 天'}];
+
+function showShareModal(f){
+  const fid=f.id;
+  const options=SHARE_EXPIRES.map(o=>'<option value="'+o.v+'">'+o.label+'</option>').join('');
+  const overlay=showModal('<div class="modal-title">分享文件</div><div class="modal-body">'
+    +'<div style="font-size:12px;color:var(--text3);margin-bottom:18px;word-break:break-all;line-height:1.5">'+escHtml(fileNameOf(f))+'</div>'
+    +'<label class="switch"><input type="checkbox" id="shHasCode"><span class="switch-track"></span>需要提取码</label>'
+    +'<div class="reveal" id="shCodeReveal" style="margin-top:12px"><div><input class="input" id="shCode" placeholder="留空自动生成 4 位数字" maxlength="16" autocomplete="off"></div></div>'
+    +'<div style="margin-top:20px"><div style="font-size:12px;color:var(--text3);margin-bottom:6px">有效期</div>'
+    +'<select id="shExpires">'+options+'</select></div>'
+    +'<div id="shResult"></div>'
+    +'</div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">关闭</button><button class="btn btn-accent" id="shCreate">创建链接</button></div>');
+
+  document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());
+
+  const cb=document.getElementById('shHasCode');
+  cb.addEventListener('change',()=>{
+    const r=document.getElementById('shCodeReveal');
+    r.classList.toggle('open',cb.checked);
+    if(cb.checked)setTimeout(()=>{const i=document.getElementById('shCode');if(i)i.focus()},200);
+  });
+
+  const expValue=()=>document.getElementById('shExpires').value;
+  enhanceSelects(overlay);
+
+  document.getElementById('shCreate').addEventListener('click',async()=>{
+    const btn=document.getElementById('shCreate');
+    const hasCode=cb.checked;
+    const code=document.getElementById('shCode').value.trim();
+    if(hasCode&&code&&!/^[A-Za-z0-9]+$/.test(code)){showToast('提取码只能用字母或数字','error');return}
+    btn.disabled=true;btn.textContent='创建中...';
+    const r=await fetch('/api/file/shares',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileId:fid,hasCode,code,expiresHours:expValue()?Number(expValue()):null})});
+    const d=await r.json();
+    btn.disabled=false;btn.textContent='再创建一个';
+    if(d.code!==0){showToast(d.message||'创建失败','error');return}
+    const x=d.data;
+    document.getElementById('shResult').innerHTML='<div class="share-result">'
+      +'<div style="font-size:12px;color:var(--text3);margin-bottom:8px">分享链接'+(x.expiresAt?'（有效期至 '+new Date(x.expiresAt).toLocaleString('zh-CN')+'）':'（永久有效）')+'</div>'
+      +'<div style="font-size:13px;word-break:break-all;color:var(--text2);line-height:1.6">'+escHtml(x.urlWithCode)+'</div>'
+      +(x.code?'<div style="font-size:12.5px;margin-top:10px;color:var(--text3)">提取码 <b style="letter-spacing:4px;color:var(--text);font-size:15px">'+escHtml(x.code)+'</b></div>':'')
+      +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'
+      +'<button class="btn btn-accent btn-sm" id="cpLink">'+(x.code?'复制带码链接':'复制链接')+'</button>'
+      +(x.code?'<button class="btn btn-ghost btn-sm" id="cpRaw">复制原始链接</button><button class="btn btn-ghost btn-sm" id="cpCode">复制提取码</button>':'')
+      +'</div></div>';
+    const copy=t=>navigator.clipboard.writeText(t).then(()=>showToast('已复制到剪贴板','success')).catch(()=>showToast('复制失败，请手动选择','error'));
+    document.getElementById('cpLink').addEventListener('click',()=>copy(x.urlWithCode));
+    if(x.code){document.getElementById('cpRaw').addEventListener('click',()=>copy(x.url));document.getElementById('cpCode').addEventListener('click',()=>copy(x.code))}
+    showToast('分享链接已创建','success');loadActivityLogs();
+  });
+}
+async function showShareRecords(f){
+  const r=await fetch('/api/file/shares?fileId='+encodeURIComponent(f.id));
+  const d=await r.json();
+  const shares=(d.code===0&&d.data&&d.data.shares)||[];
+  const rows=shares.length===0
+    ?'<div style="padding:26px;text-align:center;color:var(--text3);font-size:13px">还没有创建过分享</div>'
+    :shares.map(s=>'<div class="share-record'+(s.expired?' expired':'')+'"><div style="flex:1;min-width:0">'
+      +'<div style="font-size:12.5px;word-break:break-all;color:var(--text2)">'+escHtml(s.url||'（好友直发，无链接）')+'</div>'
+      +'<div class="share-record-meta">'+(s.code?'提取码 '+escHtml(s.code)+' · ':'无需提取码 · ')
+      +(s.expiresAt?(s.expired?'已过期 ':'至 '+new Date(s.expiresAt).toLocaleString('zh-CN')+' '):'永久有效 · ')
+      +'下载 <b>'+s.downloads+'</b> 次 · 浏览 <b>'+s.views+'</b> 次</div></div>'
+      +'<div style="display:flex;gap:6px;flex-shrink:0">'+(s.url?'<button class="btn btn-ghost btn-sm" data-copy="'+escHtml(s.url)+'">复制</button>':'')
+      +'<button class="btn btn-danger btn-sm" data-tok="'+escHtml(s.token||'')+'" data-id="'+escHtml(s.id)+'">'+(s.expired?'删除':'取消')+'</button>'
+      +'</div></div>').join('');
+  showModal('<div class="modal-title">分享记录</div><div class="modal-body"><div style="font-size:12px;color:var(--text3);margin-bottom:12px">'+escHtml(fileNameOf(f))+'</div><div style="max-height:52vh;overflow-y:auto">'+rows+'</div></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">关闭</button></div>');
+  document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());
+  document.querySelectorAll('.share-record [data-copy]').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(b.dataset.copy).then(()=>showToast('已复制','success')).catch(()=>showToast('复制失败','error'))));
+  document.querySelectorAll('.share-record [data-tok]').forEach(b=>b.addEventListener('click',async()=>{
+    const qs=b.dataset.tok?'token='+encodeURIComponent(b.dataset.tok):'id='+encodeURIComponent(b.dataset.id);
+    await fetch('/api/file/shares?'+qs,{method:'DELETE'});
+    showToast('分享已取消','success');closeAllModals();showShareRecords(f);
+  }));
+}
+
+/* ============ 上传 ============ */
+function setupDragDrop(){let dc=0;document.addEventListener('dragenter',e=>{e.preventDefault();dc++;const o=document.getElementById('dropOverlay');if(o)o.style.display='flex'});document.addEventListener('dragleave',e=>{e.preventDefault();dc--;if(dc<=0){dc=0;const o=document.getElementById('dropOverlay');if(o)o.style.display='none'}});document.addEventListener('dragover',e=>{e.preventDefault()});document.addEventListener('drop',e=>{e.preventDefault();dc=0;const o=document.getElementById('dropOverlay');if(o)o.style.display='none';if(e.dataTransfer.files.length>0)uploadFiles(e.dataTransfer.files)})}
+function setupPaste(){document.addEventListener('paste',e=>{const items=e.clipboardData&&e.clipboardData.items;if(!items)return;const files=[];for(const item of items){if(item.kind==='file'){const f=item.getAsFile();if(f)files.push(f)}}if(files.length>0)uploadFiles(files)})}
+function triggerUpload(){const inp=document.createElement('input');inp.type='file';inp.multiple=true;inp.onchange=()=>{if(inp.files.length>0)uploadFiles(inp.files)};inp.click()}
+
+async function uploadFiles(fileList){const panel=document.getElementById('uploadPanel');if(!panel)return;const files=Array.from(fileList);
+  // ---- 同名检测：网盘已存在 + 正在上传中 + 本次选择里重复 ----
+  const conflicts=[];const overwriteByName=new Map();
+  const seenInBatch={};
+  for(const file of files){
+    const key=uploadBaseName(file.name).toLowerCase();
+    if(seenInBatch[key]){conflicts.push({name:file.name,reason:'uploading',inBatch:true});}
+    seenInBatch[key]=true;
+    if(isUploading(file.name)){conflicts.push({name:file.name,reason:'uploading'});continue}
+    const ex=await findExistingByName(file.name);
+    if(ex.length){
+      conflicts.push({name:file.name,reason:'exists'});
+      overwriteByName.set(key,ex.map(x=>x.id));
+    }
+  }
+  if(conflicts.length){const ok=await askOverwriteModal(conflicts);if(!ok)return}
+  for(const file of files){
+    const id='up_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    const item=document.createElement('div');item.className='upload-item';item.id=id;
+    item.innerHTML='<div class="upload-item-header"><span class="upload-item-name">'+escHtml(file.name)+'</span><span class="upload-item-pct">0%</span><button class="upload-cancel-btn" title="取消上传" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;line-height:1">&times;</button></div><div class="upload-bar"><div class="upload-bar-fill" style="width:0%"></div></div><div class="upload-item-stats" style="font-size:11px;color:var(--text3);margin-top:4px;display:flex;justify-content:space-between"><span class="upload-stat-size">'+formatSize(0)+' / '+formatSize(file.size)+'</span><span class="upload-stat-speed"></span></div><div class="folder-sub">→ '+(state.nav==='all'&&state.currentDir?'/'+escHtml(state.currentDir):'根目录')+' · 通道 '+escHtml(currentChannelLabel())+'</div>';
+    panel.appendChild(item);
+    // ---- 上传大小限制（0=不限制）----
+    const maxBytes=(state.maxUploadMB||0)*1024*1024;
+    if(maxBytes>0&&file.size>maxBytes){
+      const p=item.querySelector('.upload-item-pct');if(p)p.textContent='拒绝';
+      const b=item.querySelector('.upload-bar-fill');if(b){b.style.background='var(--red)';b.style.width='100%'}
+      const s=item.querySelector('.folder-sub');if(s)s.textContent='文件大小 '+formatSize(file.size)+' 超过上传限制 '+formatSize(maxBytes);
+      const sz=item.querySelector('.upload-item-stats');if(sz)sz.style.color='var(--red)';
+      showToast(file.name+' 超过上传限制（最大 '+formatSize(maxBytes)+'）','error');
+      continue;
+    }
+    markUploading(file.name);
+    const ac=new AbortController();
+    const cancelBtn=item.querySelector('.upload-cancel-btn');
+    if(cancelBtn)cancelBtn.addEventListener('click',()=>{ac.abort();unmarkUploading(file.name)},{once:true});
+    try{await uploadSingleFile(file,id,{overwriteIds:overwriteByName.get(uploadBaseName(file.name).toLowerCase())||[],signal:ac.signal})}
+    catch(e){
+      if(item){
+        const cancelled=ac.signal.aborted;
+        const p=item.querySelector('.upload-item-pct');if(p)p.textContent=cancelled?'已取消':'失败';
+        const b=item.querySelector('.upload-bar-fill');if(b){b.style.background=cancelled?'var(--text3)':'var(--red)';if(cancelled)b.style.width='0%'}
+        const s=item.querySelector('.folder-sub');if(s)s.textContent=cancelled?'用户取消上传':'失败：'+e.message;
+        const sz=item.querySelector('.upload-item-stats');if(sz)sz.style.color=cancelled?'var(--text3)':'var(--red)';
+        if(!cancelled)showToast(file.name+' 上传失败：'+e.message,'error');
+      }
+    }
+    finally{unmarkUploading(file.name)}
+  }
+  loadFiles();loadQuota();loadFolders();loadActivityLogs()}
+
+async function uploadSingleFile(file,itemId,opt){
+  opt=opt||{};
+  const item=document.getElementById(itemId);
+  const totalSize=file.size;
+  const sig=opt.signal||null;
+  const setPct=p=>{if(!item)return;const t=item.querySelector('.upload-item-pct');if(t)t.textContent=p+'%';const b=item.querySelector('.upload-bar-fill');if(b)b.style.width=p+'%'};
+  let _upStart=Date.now(),_upLast=Date.now(),_upLoaded=0;
+  const setStats=loaded=>{
+    if(!item)return;
+    const now=Date.now();const el=(now-_upLast)/1000;_upLast=now;
+    const speed=el>0?(loaded-_upLoaded)/el:0;_upLoaded=loaded;
+    const sEl=item.querySelector('.upload-stat-size');
+    const spEl=item.querySelector('.upload-stat-speed');
+    if(sEl)sEl.textContent=formatSize(loaded)+' / '+formatSize(totalSize);
+    if(spEl){
+      if(speed>1024*1024)spEl.textContent=(speed/1024/1024).toFixed(1)+' MB/s';
+      else if(speed>1024)spEl.textContent=(speed/1024).toFixed(0)+' KB/s';
+      else spEl.textContent=Math.round(speed)+' B/s';
+    }
+  };
+  let ch=uploadChannelKey(), chName=uploadChannelName();
+  if(ch==='auto'){const pick=autoPickChannel(file.size);if(!pick)throw new Error('没有可用的上传通道，请先在管理后台「存储通道」里配置');ch=pick.key||pick.channel;chName=pick.channelInstance||pick.name||''}
+  const upDir=state.nav==='all'?state.currentDir:'';
+  const base='/upload/?uploadChannel='+ch+(chName?'&channelName='+encodeURIComponent(chName):'')+(upDir?'&uploadFolder='+encodeURIComponent(upDir):'');
+  const CHUNK=8*1024*1024, THRESH=24*1024*1024;
+  let src='';
+  const chType=channelTypeOf(ch);
+  if(file.size>THRESH&&chType&&chType.chunkedUnsupported)throw new Error(chType.label+' 通道不支持分片上传，单次请求上限约 100MB');
+  if(file.size>THRESH){
+    const total=Math.ceil(file.size/CHUNK);
+    const initFd=new FormData();
+    initFd.append('originalFileName',file.name);
+    initFd.append('originalFileType',file.type||'application/octet-stream');
+    initFd.append('totalChunks',String(total));
+    const initRes=await xhrUpload(base+'&initChunked=true',initFd,null,sig);
+    let initJson={};try{initJson=JSON.parse(initRes.text)}catch(e){}
+    const uploadId=initJson.uploadId||(initJson.sessionInfo&&initJson.sessionInfo.uploadId);
+    if(!uploadId)throw new Error(errTextOf(initRes.text,'分片初始化失败'));
+    let done=0;
+    for(let i=0;i<total;i++){
+      const start=i*CHUNK, end=Math.min(start+CHUNK,file.size);
+      const fd=new FormData();
+      fd.append('file',file.slice(start,end),file.name);
+      fd.append('chunkIndex',String(i));
+      fd.append('totalChunks',String(total));
+      fd.append('uploadId',uploadId);
+      fd.append('originalFileName',file.name);
+      fd.append('originalFileType',file.type||'application/octet-stream');
+      const r=await xhrUpload(base+'&chunked=true',fd,(loaded)=>{const cur=done+loaded;setPct(Math.min(99,Math.round(cur/totalSize*100)));setStats(cur)},sig);
+      if(r.status<200||r.status>=300)throw new Error(errTextOf(r.text,'分片 '+(i+1)+'/'+total+' 上传失败'));
+      done=end;
+      setPct(Math.min(99,Math.round(done/totalSize*100)));setStats(done);
+    }
+    setPct(99);
+    const mf=new FormData();
+    mf.append('uploadId',uploadId);
+    mf.append('totalChunks',String(total));
+    mf.append('originalFileName',file.name);
+    mf.append('originalFileType',file.type||'application/octet-stream');
+    const mr=await xhrUpload(base+'&chunked=true&merge=true',mf,null,sig);
+    if(mr.status<200||mr.status>=300)throw new Error(errTextOf(mr.text,'合并分片失败'));
+    const parsed=parseUploadResult(mr.text);
+    if(!parsed)throw new Error(errTextOf(mr.text,'合并分片失败'));
+    src=parsed.src;
+  }else{
+    const fd=new FormData();fd.append('file',file);
+    const r=await xhrUpload(base,fd,(loaded)=>{setPct(Math.min(99,Math.round(loaded/totalSize*100)));setStats(loaded)},sig);
+    if(r.status<200||r.status>=300)throw new Error(errTextOf(r.text,'上传失败'));
+    const parsed=parseUploadResult(r.text);
+    if(!parsed)throw new Error(errTextOf(r.text,'上传失败'));
+    src=parsed.src;
+  }
+  if(item){
+    const t=item.querySelector('.upload-item-pct');if(t)t.textContent='完成';
+    const b=item.querySelector('.upload-bar-fill');if(b)b.style.width='100%';
+    const sp=item.querySelector('.upload-stat-speed');if(sp)sp.textContent='完成';
+    const sz=item.querySelector('.upload-item-stats');if(sz)sz.style.color='var(--green)';
+  }
+  showToast(file.name+' 上传成功','success');
+  try{await replaceExistingOnUpload(file.name,idFromSrc(src),opt.overwriteIds)}catch(e){}
+  setTimeout(()=>{if(item&&item.parentNode)item.remove()},2000);
+}
+
+/* checkQuota 已由 autoPickChannel（注册表驱动）取代 */
+
+
+/* ============ 在线预览（文本 / 图片 / 视频 / 音频） ============ */
+const PV_TEXT_EXT=/\.(txt|md|markdown|json|geojson|js|mjs|cjs|ts|tsx|jsx|css|scss|less|html|htm|xml|yml|yaml|toml|ini|conf|cfg|log|csv|tsv|sh|bash|zsh|bat|py|java|c|cpp|h|hpp|cs|go|rs|rb|php|sql|swift|kt|lua|pl|r|env|gitignore|srt|vtt)$/i;
+const PV_TEXT_MIME=/^(text\/|application\/(json|xml|x-yaml|javascript|sql|x-sh))/i;
+function previewKind(f){
+  const name=fileNameOf(f).toLowerCase();
+  const mime=String(f.fileType||f.type||'').toLowerCase();
+  if(mime.indexOf('image/')===0||/\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|avif)$/.test(name))return'image';
+  if(mime.indexOf('video/')===0||/\.(mp4|webm|ogv|mov|m4v|mkv)$/.test(name))return'video';
+  if(mime.indexOf('audio/')===0||/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/.test(name))return'audio';
+  if(PV_TEXT_MIME.test(mime)||PV_TEXT_EXT.test(name))return'text';
+  return'';
+}
+function fileUrl(f){return f.src||('/file/'+String(f.id).split('/').map(encodeURIComponent).join('/'))}
+function previewFile(f){
+  if(!f||!f.id)return;
+  const kind=previewKind(f);
+  if(!kind)return; // 不支持预览的类型：点文件名没有任何反应（下载请用下载按钮）
+  const url=fileUrl(f);
+  const title=escHtml(fileNameOf(f));
+  const foot='<div class="modal-actions"><button class="btn btn-ghost pv-close">关闭</button><button class="btn btn-accent pv-dl">下载</button></div>';
+  let ov;
+  if(kind==='image'){
+    ov=showModal('<div class="modal-title">'+title+'</div><div class="modal-body"><div class="pv-body"><img class="pv-media" src="'+escHtml(url)+'" alt=""></div></div>'+foot);
+  }else if(kind==='video'){
+    ov=showModal('<div class="modal-title">'+title+'</div><div class="modal-body"><div class="pv-body"><video class="pv-media" src="'+escHtml(url)+'" controls autoplay playsinline></video></div></div>'+foot);
+  }else if(kind==='audio'){
+    ov=showModal('<div class="modal-title">'+title+'</div><div class="modal-body"><div class="pv-body"><audio class="pv-audio" src="'+escHtml(url)+'" controls autoplay></audio></div></div>'+foot);
+  }else{
+    ov=showModal('<div class="modal-title">'+title+'</div><div class="modal-body"><div class="pv-body"><pre class="pv-text" id="pvTextBox">加载中…</pre></div></div>'+foot);
+    const MAX=512*1024;
+    fetch(url).then(r=>r.text()).then(t=>{
+      const box=ov.querySelector('#pvTextBox');if(!box)return;
+      if(t.length>MAX)box.textContent=t.slice(0,MAX)+'\n\n…（文件过大，仅预览前 512KB，完整内容请下载）';
+      else box.textContent=t;
+    }).catch(()=>{const box=ov.querySelector('#pvTextBox');if(box)box.textContent='读取失败'});
+  }
+  const cb=ov.querySelector('.pv-close');if(cb)cb.addEventListener('click',()=>ov.remove());
+  const db=ov.querySelector('.pv-dl');if(db)db.addEventListener('click',()=>downloadFile(f));
+}
+
+/* ============ 转移到其他通道 ============ */
+async function showTransferModal(ids){
+  ids=(ids||[]).filter(Boolean);if(!ids.length)return;
+  let chs=state.channels||[];
+  if(!chs.length){try{const r=await fetch('/api/channels');const d=await r.json();if(d.code===0)chs=d.data||[];}catch(e){}}
+  if(!chs.length){showToast('没有可用的通道','error');return}
+  chs=chs.filter(c=>c.connectable!==false);
+  if(!chs.length){showToast('没有可作为目标的可写通道','error');return}
+  const opts=chs.map(c=>'<option value="'+escAttr(channelOptionValue(c))+'">'+escHtml(c.displayName||channelLabelOf(c.key))+'</option>').join('');
+  const ov=showModal('<div class="modal-title">转移到其他通道</div><div class="modal-body">'
+    +'<div class="folder-loc">共 '+ids.length+' 个文件</div>'
+    +'<div class="form-group"><label>目标通道</label><select id="trTarget" style="width:100%">'+opts+'</select></div>'
+    +'<div class="form-hint" style="margin-top:2px;font-size:12.5px;color:var(--text3);line-height:1.7">转移在服务器端完成，<strong>不经过你的浏览器、不需要重新上传</strong>。<br>流程：先把文件写进目标通道 → 成功后更新索引 → 再清理旧通道的副本。文件直链与分享链接保持不变。</div>'
+    +'<div class="form-hint" style="font-size:12.5px;color:var(--text3);line-height:1.7">'+escHtml(transferLimitHint())+'</div>'
+    +'</div><div class="modal-actions"><button class="btn btn-ghost pv-close">取消</button><button class="btn btn-accent" id="trSubmit">开始转移</button></div>');
+  // 与「分享」「移动到文件夹」两个弹窗保持一致：弹窗插入 DOM 之后必须再增强一次，
+  // 否则里面的原生 <select> 不会被升级成主题化下拉，点开就是系统原生那套难看的列表。
+  enhanceSelects(ov);
+  const close=ov.querySelector('.pv-close');if(close)close.addEventListener('click',()=>ov.remove());
+  const btn=ov.querySelector('#trSubmit');
+  btn.addEventListener('click',async()=>{
+    const rawTarget=String(ov.querySelector('#trTarget').value||'').split('|');
+    const targetChannel=rawTarget[0];const targetChannelName=rawTarget[1]||'';
+    btn.disabled=true;btn.textContent='转移中…';
+    try{
+      const r=await fetch('/api/file/transfer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,targetChannel,targetChannelName})});
+      const d=await r.json();
+      if(d.code===0){
+        showToast(d.message||'转移完成','success');
+        if(d.data&&d.data.failed&&d.data.failed.length)showToast(d.data.failed.length+' 个文件未能转移：'+(d.data.failed[0].reason||''),'error');
+        ov.remove();loadFiles();loadQuota();
+      }else{
+        showToast((d.message||(d.data&&d.data.failed&&d.data.failed[0]&&d.data.failed[0].reason))||'转移失败','error');
+        btn.disabled=false;btn.textContent='开始转移';
+      }
+    }catch(e){showToast('转移失败：'+e.message,'error');btn.disabled=false;btn.textContent='开始转移'}
+  });
+}
+
+/* ============ 同名文件检测（已存在 + 正在上传中） ============ */
+const uploadNameMap={};
+function uploadBaseName(name){return String(name||'').split('/').pop()}
+function uploadKey(name){return (state.nav==='all'?state.currentDir:'')+'::'+uploadBaseName(name).toLowerCase()}
+function markUploading(name){state.uploading=state.uploading||new Map();const k=uploadKey(name);state.uploading.set(k,(state.uploading.get(k)||0)+1)}
+function unmarkUploading(name){state.uploading=state.uploading||new Map();const k=uploadKey(name);const v=(state.uploading.get(k)||0)-1;if(v>0)state.uploading.set(k,v);else state.uploading.delete(k)}
+function isUploading(name){return !!(state.uploading&&state.uploading.get(uploadKey(name)))}
+function hasActiveUploads(){return !!(state.uploading&&state.uploading.size>0)}
+window.addEventListener('beforeunload',e=>{if(hasActiveUploads()){e.preventDefault();e.returnValue=''}});
+async function findExistingByName(name){
+  const base=uploadBaseName(name).toLowerCase();
+  const dir=state.nav==='all'?state.currentDir:'';
+  const hits=[];
+  for(const f of (state.files||[])){
+    if(uploadBaseName(fileNameOf(f)).toLowerCase()===base&&!hits.some(x=>x.id===f.id))hits.push(f);
+  }
+  try{
+    const p=new URLSearchParams({count:'200',dir:dir,search:uploadBaseName(name)});
+    const r=await fetch('/api/manage/list?'+p);const d=await r.json();
+    const files=(d.code===0&&d.data&&d.data.files)||[];
+    for(const f of files){
+      if(uploadBaseName(fileNameOf(f)).toLowerCase()!==base)continue;
+      if(!hits.some(x=>x.id===f.id))hits.push(f);
+    }
+  }catch(e){}
+  return hits;
+}
+function askOverwriteModal(list){
+  return new Promise(resolve=>{
+    const rows=list.map(c=>'<li>'+escHtml(c.name)+' <span style="color:'+(c.reason==='uploading'?'var(--orange)':'var(--text3)')+'">· '+(c.reason==='uploading'?(c.inBatch?'本次选择里重复':'正在上传中，还没传完'):'网盘里已存在同名文件')+'</span></li>').join('');
+    const ov=showModal('<div class="modal-title">发现同名文件</div><div class="modal-body">'
+      +'<div style="font-size:13px;line-height:1.7">下面这些文件与你要上传的文件重名：</div>'
+      +'<ul style="font-size:13px;line-height:1.9;margin:8px 0;padding-left:18px">'+rows+'</ul>'
+      +'<div style="font-size:12.5px;color:var(--text3);line-height:1.7">选「覆盖」＝继续上传，并在新文件上传成功后自动删除网盘里的旧版本（旧文件的分享链接会失效）。<br>选「取消上传」＝本次不上传，你可以先改名。</div>'
+      +'</div><div class="modal-actions"><button class="btn btn-ghost" id="dupCancel">取消上传</button><button class="btn btn-danger" id="dupOverwrite">覆盖上传</button></div>');
+    ov.querySelector('#dupCancel').addEventListener('click',()=>{ov.remove();resolve(false)});
+    ov.querySelector('#dupOverwrite').addEventListener('click',()=>{ov.remove();resolve(true)});
+  });
+}
+/** 上传成功后删掉被覆盖的旧文件 */
+async function replaceExistingOnUpload(name,newId,overwriteIds){
+  const key=uploadKey(name);
+  const ids=(overwriteIds||[]).slice();
+  const prev=uploadNameMap[key];
+  if(prev&&prev!==newId)ids.push(prev);
+  if(newId)uploadNameMap[key]=newId;
+  const uniq=Array.from(new Set(ids)).filter(x=>x&&x!==newId);
+  if(!uniq.length)return;
+  try{
+    await fetch('/api/manage/delete/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileIds:uniq})});
+    showToast('已覆盖同名旧文件（'+uniq.length+' 个）','success');
+  }catch(e){}
+}
+
+/* ============ 上传请求封装 ============ */
+function xhrUpload(url,formData,onProgress,signal){
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',url);
+    if(onProgress&&xhr.upload)xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded,e.total)};
+    xhr.onload=()=>resolve({status:xhr.status,text:xhr.responseText});
+    xhr.onerror=()=>{if(signal&&signal.aborted)reject(new Error('已取消'));else reject(new Error('网络错误'))};
+    xhr.ontimeout=()=>reject(new Error('请求超时'));
+    if(signal){
+      if(signal.aborted){reject(new Error('已取消'));return}
+      signal.addEventListener('abort',()=>{xhr.abort()}, {once:true});
+    }
+    xhr.send(formData);
+  });
+}
+function parseUploadResult(text){
+  try{const j=JSON.parse(text);const item=Array.isArray(j)?j[0]:j;if(item&&item.src)return item}catch(e){}
+  return null;
+}
+function idFromSrc(src){const t=String(src||'');const p=t.indexOf('/file/');return p>=0?decodeURIComponent(t.slice(p+6)):''}
+function errTextOf(text,fallback){
+  const t=String(text||'').replace(/^Error:\s*/,'').replace(/\s+/g,' ').trim();
+  return t&&t.length<220?t:fallback;
+}
+
+
+/* ============ 通道类型（唯一来源是后端 /api/channelTypes，前端不写死渠道） ============ */
+// 兜底表：只在接口拉取失败时用，内容与后端 functions/utils/channelRegistry.js 保持一致
+const CHANNEL_TYPE_FALLBACK=[
+  {key:'telegram',channel:'TelegramNew',label:'Telegram',shortLabel:'TG',color:'#29A9EB',icon:'<path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',connectable:true,maxFileBytes:805306368,maxParts:48},
+  {key:'cfr2',channel:'CloudflareR2',label:'Cloudflare R2',shortLabel:'R2',color:'#F6821F',icon:'<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',connectable:true,streamTransfer:true,maxFileBytes:null},
+  {key:'s3',channel:'S3',label:'S3 兼容存储',shortLabel:'S3',color:'#569A31',icon:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',connectable:true,maxFileBytes:null},
+  {key:'discord',channel:'Discord',label:'Discord',shortLabel:'DC',color:'#5865F2',icon:'<rect x="2" y="7" width="20" height="12" rx="4"/><circle cx="8.5" cy="13" r="1.3"/><circle cx="15.5" cy="13" r="1.3"/>',connectable:true,maxFileBytes:26214400},
+  {key:'huggingface',channel:'HuggingFace',label:'HuggingFace',shortLabel:'HF',color:'#FFD21E',icon:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.2c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/><circle cx="9.2" cy="10.3" r=".7"/><circle cx="14.8" cy="10.3" r=".7"/>',connectable:true,maxFileBytes:null},
+  {key:'webdav',channel:'WebDAV',label:'WebDAV',shortLabel:'DAV',color:'#0EA5E9',icon:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.4 2.7 3.6 5.7 3.6 9s-1.2 6.3-3.6 9c-2.4-2.7-3.6-5.7-3.6-9S9.6 5.7 12 3z"/>',connectable:true,chunkedUnsupported:true,maxFileBytes:null},
+  {key:'external',channel:'External',label:'外链',shortLabel:'URL',color:'#8A82B8',icon:'<path d="M10.6 13.4a4.5 4.5 0 0 0 6.4 0l2.5-2.5a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M13.4 10.6a4.5 4.5 0 0 0-6.4 0L4.5 13.1a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>',connectable:false,maxFileBytes:null}
+];
+function channelTypes(){return (state.channelTypes&&state.channelTypes.length)?state.channelTypes:CHANNEL_TYPE_FALLBACK}
+function channelTypeOf(v){if(!v)return null;const list=channelTypes();return list.find(x=>x.key===v||x.channel===v)||null}
+function channelLabelOf(v){const t=channelTypeOf(v);return t?t.label:String(v||'未知通道')}
+function channelShortOf(v){const t=channelTypeOf(v);return t?t.shortLabel:String(v||'?')}
+function channelColorOf(v){const t=channelTypeOf(v);return t?t.color:'#8A82B8'}
+async function loadChannelTypes(){try{const r=await fetch('/api/channelTypes');const d=await r.json();if(d.code===0&&Array.isArray(d.data)&&d.data.length)state.channelTypes=d.data}catch(e){}}
+
+/* 通道图标：24×24 stroke 风格，内容来自后端通道注册表 */
+function channelIconHTML(v,size){const t=channelTypeOf(v);const inner=(t&&t.icon)?t.icon:'<circle cx="12" cy="12" r="9"/>';
+  const px=size||16;const color=(t&&t.color)?t.color:'currentColor';
+  return '<svg width="'+px+'" height="'+px+'" viewBox="0 0 24 24" fill="none" stroke="'+escAttr(color)+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">'+inner+'</svg>'}
+/* 单文件上限提示：全部来自注册表的 maxFileBytes，不写死任何通道名 */
+function transferLimitHint(){
+  const parts=channelTypes().filter(t=>t.connectable!==false&&t.maxFileBytes).map(t=>t.label+' '+Math.round(t.maxFileBytes/1024/1024)+' MB');
+  return (parts.length?('转移时的单文件上限：'+parts.join('、')+'。'):'')
+    +'这与「无限容量」不冲突：无限容量指的是该通道不占共享池配额（能存多少总量），'
+    +'而单个文件转移时必须在一次请求内分片投递，受 Cloudflare 免费版「单次请求最多 50 个子请求」的限制。'
+    +'目标是 R2 / S3 / WebDAV 时走服务端流式转发，单文件不受此限。';
+}
+
+/* 通道徽标：颜色与短名都由注册表决定（再也没有 if(ch==='cfr2') 这种分支） */
+function getChannelBadge(ch,chName){const t=channelTypeOf(ch);const label=t?t.shortLabel:String(ch||'?');const color=t?t.color:'#8A82B8';
+  const title=(t?t.label:String(ch||''))+(chName?' · '+chName:'');
+  return '<span class="badge" title="'+escAttr(title)+'" style="background:'+color+'22;color:'+color+'">'+escHtml(label)+'</span>'}
+
+/* 通道选择器：一个「key|实例名」的编码值，才能区分同类型的多个通道 */
+function channelOptionValue(c){const k=c.key||c.channel;const n=c.channelInstance||(c.savePath==='environment variable'?c.name:'');return n?k+'|'+n:k}
+function uploadChannelKey(){const v=String(state.uploadChannel||'auto');return v==='auto'?'auto':(v.split('|')[0]||'auto')}
+function uploadChannelName(){const p=String(state.uploadChannel||'').split('|');return p.length>1?(p[1]||''):''}
+function renderChannelSelectors(){
+  const opts=(state.channels||[]).filter(c=>c.connectable!==false).map(c=>'<option value="'+escAttr(channelOptionValue(c))+'">'+escHtml(c.displayName||channelLabelOf(c.key))+'</option>').join('');
+  ['uploadChannelSelect','uploadChannelSide'].forEach(id=>{const el=document.getElementById(id);if(!el)return;
+    el.innerHTML='<option value="auto">'+(id==='uploadChannelSelect'?'自动通道':'自动')+'</option>'+opts;
+    let cur=state.uploadChannel;if(![].some.call(el.options,o=>o.value===cur))cur='auto';
+    el.value=cur;state.uploadChannel=cur});
+}
+/* 自动通道：优先挑「有限额且装得下」的（通常是 R2），其次挑不限额的（通常是 TG）。
+   不写死任何渠道名 —— 顺序完全由你在后台配置的通道顺序决定。 */
+function autoPickChannel(fileSize){
+  const list=(state.channels||[]).filter(c=>c.connectable!==false);
+  if(!list.length)return null;
+  let firstUnlimited=null,firstAny=null;
+  for(const c of list){const q=c.quota||{};const total=q.total||0;const unlimited=!!c.unlimited||total===0;
+    if(!firstAny)firstAny=c;
+    if(unlimited){if(!firstUnlimited)firstUnlimited=c;continue}
+    if((q.used||0)+fileSize<=total)return c}
+  return firstUnlimited||firstAny;
+}
+/* 当前上传通道的展示文案（写进上传条目里） */
+function currentChannelLabel(){
+  if(state.uploadChannel!=='auto'){const t=channelTypeOf(uploadChannelKey());const n=uploadChannelName();
+    return (t?t.label:uploadChannelKey())+(n?' · '+n:'')}
+  const p=autoPickChannel(0);return p?('自动 · '+(p.displayName||channelLabelOf(p.key))):'自动';
+}
+
+/* ============ 文件夹 / 目录树 ============ */
+const FOLDER_SVG='<svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+const CHEV_S='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+const TRASH_S='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
+function escAttr(s){return String(s===undefined||s===null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function parentOf(p){const t=String(p||'').replace(/\/$/,'');const i=t.lastIndexOf('/');return i===-1?'':t.slice(0,i+1)}
+function baseName(p){return String(p||'').replace(/\/$/,'').split('/').pop()||''}
+
+// 上传通道：单一数据源，侧栏与顶栏两个下拉保持同步
+function setUploadChannel(v){state.uploadChannel=v||'auto';
+    ['uploadChannelSelect','uploadChannelSide'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=state.uploadChannel});
+    updateStorageBar()}
+
+async function loadFolders(){try{
+    const r=await fetch('/api/folders');const d=await r.json();
+    if(d.code!==0)return;
+    state.folders=(d.data&&d.data.folders)||[];
+    renderFolderTree();
+    if(state.currentView==='files')renderFiles();
+}catch(e){}}
+
+function childFoldersOf(parent){return(state.folders||[]).filter(f=>f.parent===parent).sort((a,b)=>String(a.name).localeCompare(String(b.name),'zh-CN',{numeric:true}))}
+
+function folderTreeHTML(parent){const kids=childFoldersOf(parent);if(!kids.length)return'';
+    return kids.map(f=>{
+        const open=state.openFolders.has(f.path);
+        return '<div class="tree-node">'
+            +'<div class="sidebar-nav-item tree-row'+(open?' expanded':'')+'" data-folder="'+escAttr(f.path)+'" title="'+escAttr(f.path)+'">'
+            +'<span class="tree-chev'+(f.hasChildren?'':' empty')+'">'+(f.hasChildren?CHEV_S:'')+'</span>'
+            +FOLDER_SVG
+            +'<span class="tree-label">'+escHtml(f.name)+'</span>'
+            +(f.fileCount?'<span class="tree-count">'+f.fileCount+'</span>':'')
+            +'</div>'
+            +(f.hasChildren?'<div class="reveal tree-kids'+(open?' open':'')+'"><div class="tree-kids-inner">'+(open?folderTreeHTML(f.path):'')+'</div></div>':'')
+            +'</div>'
+    }).join('')}
+
+function renderFolderTree(){const host=document.getElementById('folderTree');if(!host)return;
+    const html=folderTreeHTML('');
+    host.innerHTML=html;
+    host.classList.toggle('is-empty',!html);
+    syncTreeActive()}
+
+function syncTreeActive(){document.querySelectorAll('.sidebar-nav .sidebar-nav-item').forEach(el=>{
+    if(el.dataset.folder){el.classList.toggle('active',state.nav==='all'&&state.currentDir===el.dataset.folder)}
+    else if(el.dataset.nav){el.classList.toggle('active',state.nav===el.dataset.nav&&!state.currentDir)}})}
+
+function findTreeRow(path){let hit=null;document.querySelectorAll('.sidebar-nav-item[data-folder]').forEach(el=>{if(el.dataset.folder===path)hit=el});return hit}
+
+// 「全部文件」整块折叠：默认收起，点击丝滑拉出
+function toggleAllFiles(force){const tree=document.getElementById('allFilesTree');const row=document.getElementById('allFilesRow');if(!tree||!row)return;
+    const open=(force===undefined)?!tree.classList.contains('open'):!!force;
+    state.allFilesOpen=open;tree.classList.toggle('open',open);row.classList.toggle('expanded',open)}
+
+function toggleFolderNode(path){const open=!state.openFolders.has(path);
+    if(open)state.openFolders.add(path);else state.openFolders.delete(path);
+    setNodeOpen(path,open);syncTreeActive()}
+
+// 展开 / 收起某个节点：只切类、不重渲染，保证 grid 行高过渡动画不被打断
+function setNodeOpen(path,open){const row=findTreeRow(path);if(!row)return;
+    row.classList.toggle('expanded',open);
+    const kids=row.nextElementSibling;
+    if(kids&&kids.classList.contains('tree-kids')){
+        if(open){const inner=kids.firstElementChild;
+            if(inner&&!inner.innerHTML.trim())inner.innerHTML=folderTreeHTML(path)}
+        kids.classList.toggle('open',open)}}
+
+// 让左侧树与当前路径同步：路径上的层级展开、刚退出来的那几层收起、当前项滚进可视区
+function syncTreeToPath(path){
+    const segs=String(path||'').split('/').filter(Boolean);
+    const chain=new Set();let acc='';
+    segs.forEach(s=>{acc+=s+'/';chain.add(acc)});
+    // 1) 收起「比当前路径更深」的展开项（就是刚退出来的那些层），其他文件夹的展开状态保留
+    Array.from(state.openFolders).forEach(p=>{
+        const deeper=segs.length===0?true:(p!==path&&p.startsWith(path));
+        if(deeper){state.openFolders.delete(p);setNodeOpen(p,false)}});
+    // 2) 逐级展开路径上的每一层（顺带懒加载下级）
+    acc='';
+    segs.forEach(s=>{acc+=s+'/';state.openFolders.add(acc);setNodeOpen(acc,true)});
+    toggleAllFiles(true);
+    syncTreeActive();
+    scrollActiveRowIntoView()}
+
+function scrollActiveRowIntoView(){const el=document.querySelector('.sidebar-nav .sidebar-nav-item.active');
+    const nav=document.querySelector('.sidebar-nav');if(!el||!nav)return;
+    const r=el.getBoundingClientRect(),n=nav.getBoundingClientRect();
+    if(r.top<n.top+2||r.bottom>n.bottom-2)nav.scrollTop+=r.top-n.top-8}
+
+function enterFolder(path){state.nav='all';state.currentDir=path||'';state.start=0;state.search='';
+    const si=document.getElementById('searchInput');if(si)si.value='';
+    syncTreeToPath(state.currentDir);        // 左侧树跟着一起进退
+    showFilesView();loadFiles();toggleSidebar(false)}
+
+function renderCrumb(){const el=document.getElementById('crumbBar');if(!el)return;
+    if(state.currentView!=='files'||state.nav!=='all'){el.style.display='none';return}
+    el.style.display='';
+    const segs=String(state.currentDir||'').split('/').filter(Boolean);
+    let acc='';
+    let html='<span class="crumb-icon">'+FOLDER_SVG+'</span><span class="crumb'+(segs.length?'':' last')+'" data-crumb="">全部文件</span>';
+    segs.forEach((s,k)=>{acc+=s+'/';html+='<span class="crumb-sep">/</span><span class="crumb'+(k===segs.length-1?' last':'')+'" data-crumb="'+escAttr(acc)+'">'+escHtml(s)+'</span>'});
+    el.innerHTML=html;
+    el.querySelectorAll('[data-crumb]').forEach(c=>c.addEventListener('click',()=>{if(c.classList.contains('last'))return;enterFolder(c.dataset.crumb)}))}
+
+/* ---- 文件列表里的文件夹行 ---- */
+function folderRowsHTML(){if(state.nav!=='all')return'';
+    return childFoldersOf(state.currentDir).map(f=>{
+        return '<tr class="folder-row" data-path="'+escAttr(f.path)+'">'
+            +'<td class="cb-cell"></td>'
+            +'<td><div class="file-name"><div class="file-icon" style="background:rgba(167,139,250,.16)">\uD83D\uDCC1</div><span class="file-name-text">'+escHtml(f.name)+'</span></div></td>'
+            +'<td class="file-size">'+(f.fileCount?f.fileCount+' 个文件':'空文件夹')+'</td>'
+            +'<td class="file-date col-date">\u2014</td>'
+            +'<td class="file-owner col-owner">\u2014</td>'
+            +'<td class="file-channel col-channel"><span class="badge" style="background:var(--surface);color:var(--text3)">文件夹</span></td>'
+            +'<td><div class="file-actions" style="opacity:1"><button class="file-action del" data-fdel="'+escAttr(f.path)+'" title="删除文件夹">'+TRASH_S+'</button></div></td>'
+            +'</tr>'}).join('')}
+
+function folderCardsHTML(){if(state.nav!=='all')return'';
+    return childFoldersOf(state.currentDir).map(f=>'<div class="file-grid-item folder-grid" data-path="'+escAttr(f.path)+'"><div class="file-icon" style="background:rgba(167,139,250,.16)">\uD83D\uDCC1</div><div class="file-name-text">'+escHtml(f.name)+'</div><div class="folder-sub">'+(f.fileCount?f.fileCount+' 个文件':'空文件夹')+'</div><div class="file-actions"><button class="file-action del" data-fdel="'+escAttr(f.path)+'" title="删除文件夹">'+TRASH_S+'</button></div></div>').join('')}
+
+function bindFolderRows(){const a=document.getElementById('fileArea');if(!a)return;
+    a.querySelectorAll('.folder-row,.folder-grid').forEach(el=>{const p=el.dataset.path;
+        el.addEventListener('click',e=>{if(e.target.closest('[data-fdel]'))return;enterFolder(p)});
+        el.addEventListener('contextmenu',e=>{e.preventDefault();showFolderMenu(e,p)})});
+    a.querySelectorAll('[data-fdel]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteFolder(b.dataset.fdel)}))}
+
+function showFolderMenu(e,path){hideContextMenu();
+    const menu=document.createElement('div');menu.className='context-menu';
+    menu.style.left=Math.min(e.clientX,window.innerWidth-180)+'px';menu.style.top=e.clientY+'px';
+    menu.innerHTML='<div class="context-menu-item" data-fopen="1">'+FOLDER_SVG.replace('class="tree-icon"','width="14" height="14"')+'打开</div>'
+        +'<div class="context-menu-item" data-fdel2="1" style="color:var(--red)">'+TRASH_S+'删除文件夹</div>';
+    document.body.appendChild(menu);
+    menu.querySelector('[data-fopen]').addEventListener('click',()=>{hideContextMenu();enterFolder(path)});
+    menu.querySelector('[data-fdel2]').addEventListener('click',()=>{hideContextMenu();deleteFolder(path)})}
+
+function showNewFolderModal(){const parent=state.currentDir||'';
+    showModal('<div class="modal-title">新建文件夹</div><div class="modal-body">'
+        +'<div class="folder-loc">位置：'+escHtml(parent?'/'+parent:'根目录（全部文件）')+'</div>'
+        +'<input class="input" id="nfName" placeholder="文件夹名称" maxlength="60" autocomplete="off">'
+        +'<div class="folder-hint">空格与 \\ / : * ? " &lt; &gt; | 会被自动替换为下划线</div>'
+        +'</div><div class="modal-actions"><button class="btn btn-ghost nf-cancel">取消</button><button class="btn btn-accent" id="nfOk">创建</button></div>');
+    const inp=document.getElementById('nfName');
+    setTimeout(()=>inp.focus(),80);
+    document.querySelector('.nf-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());
+    const submit=async()=>{const name=inp.value.trim();if(!name){showToast('请输入文件夹名','error');return}
+        const btn=document.getElementById('nfOk');btn.disabled=true;btn.textContent='创建中...';
+        const r=await fetch('/api/folders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parent,name})});
+        const d=await r.json();
+        btn.disabled=false;btn.textContent='创建';
+        if(d.code!==0){showToast(d.message||'创建失败','error');return}
+        showToast('文件夹已创建','success');closeAllModals();
+        state.openFolders.add(d.data.path);
+        await loadFolders();loadActivityLogs()};
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+    document.getElementById('nfOk').addEventListener('click',submit)}
+
+async function deleteFolder(path){
+    let stats={count:0,size:0};
+    try{ stats=await getFolderStats(path); }catch(e){}
+    const overlay=showModal('<div class="modal-title">删除文件夹</div><div class="modal-body">'
+        +'确定删除「'+escHtml(baseName(path))+'」吗？'
+        +'<div class="folder-hint">该文件夹包含 '+stats.count+' 个文件，共 '+formatSize(stats.size)+'，删除后不可恢复。</div>'
+        +'</div><div class="modal-actions"><button class="btn btn-ghost df-cancel">取消</button><button class="btn btn-danger" id="dfOk">删除</button></div>');
+    document.querySelector('.df-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());
+    document.getElementById('dfOk').addEventListener('click',async()=>{
+        const r=await fetch('/api/folders?path='+encodeURIComponent(path),{method:'DELETE'});
+        const d=await r.json();
+        if(d.code!==0){showToast(d.message||'删除失败','error');return}
+        showToast('文件夹已删除','success');closeAllModals();
+        state.openFolders.delete(path);
+        if(state.currentDir===path||state.currentDir.startsWith(path))state.currentDir=parentOf(path);
+        await loadFolders();loadFiles();loadActivityLogs();syncTreeToPath(state.currentDir)});
+}
+
+async function getFolderStats(path){
+    let count=0,size=0;
+    const queue=[path];
+    while(queue.length){
+        const dir=queue.shift();
+        const r=await fetch('/api/manage/list?count=-1&dir='+encodeURIComponent(dir));
+        const d=await r.json();
+        const files=(d.data&&d.data.files)||[];
+        count+=files.length;
+        for(const f of files){ size+=(f.fileSize||0); }
+        const dirs=(d.data&&d.data.directories)||[];
+        for(const sub of dirs) queue.push(sub);
+    }
+    return {count,size};
+}
+
+async function showMoveModal(ids){ids=(ids||[]).filter(Boolean);if(!ids.length)return;
+    await loadFolders();
+    const opts=()=>'<option value="">根目录（全部文件）</option>'+(state.folders||[]).map(f=>'<option value="'+escAttr(f.path)+'">'+'\u3000'.repeat(f.depth||0)+escHtml(f.name)+'</option>').join('');
+    const overlay=showModal('<div class="modal-title">移动到文件夹</div><div class="modal-body">'
+        +'<div class="folder-loc">共 '+ids.length+' 个文件 · 当前位置：'+escHtml(state.currentDir?'/'+state.currentDir:'根目录')+'</div>'
+        +'<select id="mvTarget">'+opts()+'</select>'
+        +'<div class="folder-new-row"><input class="input" id="mvNew" placeholder="或在这里新建一个文件夹"><button class="btn btn-ghost" id="mvCreate">新建</button></div>'
+        +'</div><div class="modal-actions"><button class="btn btn-ghost mv-cancel">取消</button><button class="btn btn-accent" id="mvOk">移动到这里</button></div>');
+    document.getElementById('mvTarget').value=state.currentDir||'';
+    enhanceSelects(overlay);
+    document.querySelector('.mv-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());
+    document.getElementById('mvCreate').addEventListener('click',async()=>{
+        const inp=document.getElementById('mvNew');const name=inp.value.trim();if(!name){showToast('请输入文件夹名','error');return}
+        const parent=document.getElementById('mvTarget').value||'';
+        const r=await fetch('/api/folders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parent,name})});
+        const d=await r.json();
+        if(d.code!==0){showToast(d.message||'创建失败','error');return}
+        await loadFolders();
+        const sel=document.getElementById('mvTarget');
+        sel.innerHTML=opts();sel.value=d.data.path;inp.value='';
+        state.openFolders.add(d.data.path);
+        showToast('已创建并选中','success')});
+    document.getElementById('mvOk').addEventListener('click',async()=>{
+        const btn=document.getElementById('mvOk');const target=document.getElementById('mvTarget').value||'';
+        btn.disabled=true;btn.textContent='移动中...';
+        const r=await fetch('/api/file/move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,target})});
+        const d=await r.json();
+        btn.disabled=false;btn.textContent='移动到这里';
+        const moved=(d.data&&d.data.moved)||[];
+        if(!moved.length){showToast(d.message||'移动失败','error');return}
+        showToast('已移动 '+moved.length+' 个文件到 '+(target?'/'+target:'根目录'),'success');
+        closeAllModals();
+        state.selected.clear();updateBatchBar();
+        await loadFolders();loadFiles();loadActivityLogs()})}
+
+/* ============ 通用 ============ */
+function showModal(html){const overlay=document.createElement('div');overlay.className='modal-overlay';overlay.innerHTML='<div class="modal glass-hi">'+html+'</div>';overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});document.body.appendChild(overlay);return overlay}
+function closeAllModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.remove());hideContextMenu()}
+
+function showDeleteConfirm(files){const names=files.map(f=>escHtml(fileNameOf(f))).join('、');const ids=files.map(f=>f.id);showModal('<div class="modal-title">确认删除</div><div class="modal-body">确定要删除 '+names+' 吗？此操作不可撤销。</div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">取消</button><button class="btn btn-danger modal-confirm">删除</button></div>');document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());document.querySelector('.modal-confirm').addEventListener('click',async()=>{if(ids.length===1){await fetch('/api/manage/delete/'+encodeURIComponent(ids[0]),{method:'DELETE'})}else{await fetch('/api/manage/delete/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileIds:ids})})}showToast('删除成功','success');closeAllModals();state.selected.clear();loadFiles();loadQuota();loadActivityLogs()})}
+
+function showRenameModal(f){showModal('<div class="modal-title">重命名</div><div class="modal-body"><input class="input" id="renameInput" value="'+escHtml(fileNameOf(f))+'"></div><div class="modal-actions"><button class="btn btn-ghost modal-cancel">取消</button><button class="btn btn-accent modal-confirm">确认</button></div>');const inp=document.getElementById('renameInput');setTimeout(()=>{inp.focus();inp.select()},100);document.querySelector('.modal-cancel').addEventListener('click',e=>e.target.closest('.modal-overlay').remove());document.querySelector('.modal-confirm').addEventListener('click',async()=>{const newName=inp.value.trim();if(!newName){showToast('请输入文件名','error');return}const r=await fetch('/api/manage/rename/'+encodeURIComponent(f.id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({newFileId:newName})});const d=await r.json();if(d.success===false){showToast(d.message||d.error||'重命名失败','error');return}showToast('重命名成功','success');closeAllModals();loadFiles();loadActivityLogs()});inp.addEventListener('keydown',e=>{if(e.key==='Enter')document.querySelector('.modal-confirm').click()})}
+
+async function batchDownload(){const ids=Array.from(state.selected);for(const id of ids){const f=state.files.find(x=>x.id===id);if(f){downloadFile(f);await new Promise(r=>setTimeout(r,300))}}}
+async function batchDelete(){const ids=Array.from(state.selected);const files=ids.map(id=>state.files.find(f=>f.id===id)).filter(Boolean);if(files.length>0)showDeleteConfirm(files)}
+
+function showToast(msg,type='info'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3000)}
+
+function showContextMenu(e,fid){e.preventDefault();hideContextMenu();const menu=document.createElement('div');menu.className='context-menu';menu.style.left=Math.min(e.clientX,window.innerWidth-180)+'px';menu.style.top=e.clientY+'px';menu.innerHTML='<div class="context-menu-item" data-action="download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下载</div><div class="context-menu-item" data-action="records"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>分享记录</div><div class="context-menu-item" data-action="move"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>移动到</div><div class="context-menu-item" data-action="share"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享</div><div class="context-menu-item" data-action="rename"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>重命名</div><div class="context-menu-item danger" data-action="delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>删除</div>';menu.querySelectorAll('[data-action]').forEach(item=>{item.addEventListener('click',()=>{handleFileAction(item.dataset.action,fid);hideContextMenu()})});document.body.appendChild(menu)}
+function hideContextMenu(){document.querySelectorAll('.context-menu').forEach(m=>m.remove())}
+
+async function loadUserProfile(){const r=await fetch('/api/user/profile');const d=await r.json();if(d.code===0&&d.data){currentUserProfile=d.data;updateUserAvatar()}}
+function updateUserAvatar(){const el=document.getElementById('userAvatar');if(!el)return;el.innerHTML=avatarHTML(currentUserProfile,18)}
+
+async function loadTags(){const r=await fetch('/api/userConfig');const d=await r.json();if(d.code===0&&d.data&&d.data.tags){const sec=document.getElementById('tagsSection');const c=document.getElementById('tagsContainer');if(sec&&c&&d.data.tags.length>0){sec.style.display='';c.innerHTML=d.data.tags.map(t=>'<span class="badge" style="background:var(--surface);color:var(--text2);margin:2px 4px 2px 0;cursor:pointer;border:1px solid var(--border);font-size:11px;padding:3px 8px">'+escHtml(t)+'</span>').join('')}}}
+
+document.addEventListener('click',()=>closeAllDropdowns());
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllDropdowns()});
+document.addEventListener('DOMContentLoaded',()=>{applyTheme(state.theme);checkSession();document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllModals()});document.addEventListener('click',e=>{if(!e.target.closest('.context-menu'))hideContextMenu()})});
+</script>
+</body>
+</html>

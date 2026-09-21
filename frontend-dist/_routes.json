@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [],
+  "rules": [
+    { "glob": "/api/*", "allow": "functions" },
+    { "glob": "/upload/*", "allow": "functions" },
+    { "glob": "/random/*", "allow": "functions" },
+    { "glob": "/file/*", "allow": "functions" },
+    { "glob": "/dav/*", "allow": "functions" },
+    { "glob": "/s/*", "allow": "functions" }
+  ]
+}
